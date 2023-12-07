@@ -1,0 +1,162 @@
+body {
+    margin: 0
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#controls {
+    background-color: blue;
+    width: 100px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    right: 0;
+}
+
+.hide {
+    display: none;
+}
+
+.loglevel-notset {
+    background-color: rgb(255, 255, 255);
+}
+
+.loglevel-info {
+    background-color: rgb(0, 190, 255);
+}
+
+.loglevel-debug {
+    background-color: rgb(255, 240, 0);
+}
+
+.loglevel-warn {
+    background-color: rgb(255, 140, 0);
+}
+
+.loglevel-error {
+    background-color: rgb(255, 0, 100);
+}
+
+.loglevel-critical {
+    background-color: rgb(255, 0, 0);
+}
+
+.logfilter-select-show {
+    background-color: rgb(0, 255, 0);
+}
+
+.logfilter-select-show-weak {
+    background-color: rgb(34, 150, 34);
+}
+
+.logfilter-select-hide-weak {
+    background-color: rgb(124, 0, 0);
+}
+
+.logfilter-select-hide {
+    background-color: rgb(255, 0, 0);
+}
+
+.logfilter-show {
+    background-color: green;
+}
+
+.logfilter-hide {
+    background-color: red;
+}
+
+.logfilter-hide-weak {
+    background-color: lightcoral;
+}
+
+.logfilter-show-weak {
+    background-color: rgb(153, 255, 153);
+}
+
+.log-A {
+    border: 1px blue solid
+}
+
+/* 
+
+    Logfilters: in reverse order of importance as later rules dominate earlier ones
+
+    - hide: hide
+    - weak-hide: hide
+    - weakshow: show unless hide on level above ->
+        show rules (to override weak hide) <= these need to be in the right spot: weakshow overrides hide only if it is more specific
+            (i.e. A-B-weakshow should not cancel A-B-C hide or A-B-C weakhide)
+        hide rules follow
+    - show from most selective to least
+
+    //-----
+    - hide, weak-hide, weakshow: hide rules before show rules, grouped by selectivity, i.e. hide/weak-hide/weakshow A go before hide/weak-hide/weakshow A-B
+      => A-weakshow, A-B-weakhide => A-B hidden
+    - show rules last: they always override everything else
+
+*/
+
+.logfilter-hide-A .log-A,
+.logfilter-hide-weak-A .log-A {
+    display: none;
+}
+
+.logfilter-show-weak-A .log-A {
+    display: block;
+}
+
+/*
+(if there is a parent with hard hide), but there cant be because we are top level
+ .logfilter-show-weak-A .log-A {
+    display: none;
+} */
+
+.logfilter-hide-A-B .log-A-B,
+.logfilter-hide-weak-A-B .log-A-B {
+    display: none;
+}
+
+.logfilter-show-weak-A-B .log-A-B {
+    display: block;
+}
+
+.logfilter-hide-A .logfilter-show-weak-A-B .log-A-B {
+    display: none;
+}
+
+.logfilter-hide-A-B-C .log-A-B-C,
+.logfilter-hide-weak-A-B-C .log-A-B-C {
+    display: none;
+}
+
+.logfilter-show-weak-A-B-C .log-A-B-C {
+    display: block;
+}
+
+.logfilter-hide-A .logfilter-show-weak-A-B-C .log-A-B-C,
+.logfilter-hide-A-B .logfilter-show-weak-A-B-C .log-A-B-C {
+    display: none;
+}
+
+/* TODO: should we rewrite the rule selectors in a way that we do not need to annotate
+the log messages as .log-A .log-A-B .log-A-B-C?
+i.e. => 
+  .logfilter-show-A .log-A,
+  .logfilter-show-A .log-A-B,
+  .logfilter-show-A .log-A-B-C,
+
+As far as I can see only the show rule would be affected,
+but we could stop many false positives in rule matching stop form happening
+(i.e. .hide-A and hide-A-B would no longer match on .log-A-B-C causing the number of rules matched per element to decrease)
+
+=> Measure Performance with firefox/edge performance tools once this is working.
+See https://blogs.windows.com/msedgedev/2023/01/17/the-truth-about-css-selector-performance/
+*/
+.logfilter-show-A .log-A,
+.logfilter-show-A-B .log-A-B,
+.logfilter-show-A-B-C .log-A-B-C {
+    display: block;
+}

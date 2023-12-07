@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>LogView</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="logview.css">
+</head>
+
+<body>
+    <div id="logview"></div>
+    <div id="controls"></div>
+    <script src="logview.js" async defer></script>
+    <label>
+        TADA
+        <select style="display:none">
+            <option class="logfilter-select-show">show</option>
+            <option class="logfilter-select-show-weak">show-weak</option>
+            <option class="logfilter-select-hide-weak">hide-weak</option>
+            <option class="logfilter-select-hide">hide</option>
+        </select>
+    </label>
+
+    <div class="logfilter-show-A logfilter-hide-weak-A-B logfilter-hide-weak-A-B-C">
+        <div class="log-A loglevel-critical">Message A</div>
+        <div class="log-A log-A-B loglevel-info">Message A.B</div>
+        <div class="log-A log-A-B log-A-B-C loglevel-info">Message A.B.C</div>
+    </div>
+
+</body>
+
+</html>
