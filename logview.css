@@ -109,47 +109,25 @@ table {
 
 */
 
+/* level 1 */
 .logfilter-hide-A .log-A,
-.logfilter-hide-weak-A .log-A {
-    display: none;
-}
-
-.logfilter-show-weak-A .log-A {
-    display: revert;
-}
-
-.logfilter-hide.logfilter-show-weak-A .log-A {
-    display: none;
-}
-
+.logfilter-hide-weak-A .log-A,
+.logfilter-hide.logfilter-show-weak-A .log-A,
+/* level 2 */
 .logfilter-hide-A-B .log-A-B,
-.logfilter-hide-weak-A-B .log-A-B {
-    display: none;
-}
-
-.logfilter-show-weak-A-B .log-A-B {
-    display: revert;
-}
-
+.logfilter-hide-weak-A-B .log-A-B,
 .logfilter-hide.logfilter-show-weak-A-B .log-A-B,
-.logfilter-hide-A.logfilter-show-weak-A-B .log-A-B {
-    display: none;
-}
-
+.logfilter-hide-A.logfilter-show-weak-A-B .log-A-B,
+/* level 3 */
 .logfilter-hide-A-B-C .log-A-B-C,
-.logfilter-hide-weak-A-B-C .log-A-B-C {
-    display: none;
-}
-
-.logfilter-show-weak-A-B-C .log-A-B-C {
-    display: revert;
-}
-
+.logfilter-hide-weak-A-B-C .log-A-B-C,
 .logfilter-hide.logfilter-show-weak-A-B-C .log-A-B-C,
 .logfilter-hide-A.logfilter-show-weak-A-B-C .log-A-B-C,
 .logfilter-hide-A-B.logfilter-show-weak-A-B-C .log-A-B-C {
     display: none;
 }
+
+
 
 /* TODO: should we rewrite the rule selectors in a way that we do not need to annotate
 the log messages as .log-A .log-A-B .log-A-B-C?
