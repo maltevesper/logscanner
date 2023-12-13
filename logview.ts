@@ -4,17 +4,17 @@ type JSONValue =
     | number
     | boolean
     | { [x: string]: JSONValue }
-    | Array<JSONValue>;
+    | Array<JSONValue>
 
 type LogType = {
     records: Array<LogRecord>;
-};
+}
 
 type LogRecord = {
     message: string;
     level: number;
     logger: string;
-};
+}
 
 enum LogLevel {
     NOTSET = 0,
@@ -26,27 +26,28 @@ enum LogLevel {
 }
 
 type SelectOption = {
+    label: string;
     value: string;
     class: string;
-};
+}
 
 function toLevelCategory(numeric_level: number): LogLevel {
-    let level: LogLevel = LogLevel.NOTSET;
+    let level: LogLevel = LogLevel.NOTSET
 
     Object.keys(LogLevel).every((key, index) => {
         const key_index = Number(key)
 
         // Once we reach the text keys we are done
         if (isNaN(key_index)) {
-            return false;
+            return false
         }
 
         if (key_index <= numeric_level) {
-            level = key_index;
-            return true;
+            level = key_index
+            return true
         }
 
-        return false;
+        return false
     })
 
     return level;
@@ -58,10 +59,35 @@ function addHiddenClass(baseclass: string) {
     }
 }
 
+class TreeNode {
+    name: string
+    children: Array<TreeNode>
+
+    constructor(name: string) {
+        this.name = name
+        this.children = []
+    }
+
+    addChild(node: TreeNode) {
+        this.children.push(node)
+    }
+}
+
+class Tree {
+    #root: TreeNode
+
+    constructor() {
+        this.#root = new TreeNode("__root__")
+    }
+
+
+}
+
 class Log {
     #data: LogType
     #table: HTMLTableElement
     #table_body: HTMLTableSectionElement
+    #stylesheet: CSSStyleSheet
 
     constructor(table_container: HTMLElement, control_container: HTMLElement, log_data: LogType) {
         this.#data = log_data;
@@ -73,6 +99,25 @@ class Log {
         }
 
         control_container.appendChild(this.createControls())
+
+        this.#stylesheet = new CSSStyleSheet()
+        document.adoptedStyleSheets.push(this.#stylesheet)
+    }
+
+    cycleButton(event: MouseEvent) {
+        const select = event.target as HTMLSelectElement
+        const previous_option = select.selectedOptions[0]
+        const option_to_select = unwrap(select.options.item((select.options.selectedIndex + 1) % select.options.length))
+        const label = select.labels[0]
+
+        select.value = option_to_select.value
+
+        setText(label, option_to_select.value)
+        label.classList.remove(previous_option.className)
+        label.classList.add(option_to_select.className)
+
+        this.#table_body.classList.remove(previous_option.value)
+        this.#table_body.classList.add(option_to_select.value)
     }
 
     makeButton(options: Array<SelectOption>): HTMLLabelElement {
@@ -88,13 +133,28 @@ class Log {
 
         select.value = options[0].value
 
+        button.innerText = options[0].value
+        button.classList.add("multibutton")
+
+        button.appendChild(select)
+        select.addEventListener("click", this.cycleButton.bind(this))
         return button
     }
 
     createControls() {
-        let button = document.createElement("div")
-        button.innerHTML = "click me!"
-        button.addEventListener("click", event => { addHiddenClass("loglevel-critical"); })
+        // let button = document.createElement("div")
+        // button.innerHTML = "click me!"
+        // button.addEventListener("click", event => { addHiddenClass("loglevel-critical"); })
+        // return button
+        const button = this.makeButton(
+            [
+                { "label": "show", "value": "logfilter-show", "class": "logfilter-select-show" },
+                { "label": "show (weak)", "value": "logfilter-show-weak", "class": "logfilter-select-show-weak" },
+                { "label": "hide (weak)", "value": "logfilter-hide-weak", "class": "logfilter-select-hide-weak" },
+                { "label": "hide", "value": "logfilter-hide", "class": "logfilter-select-hide" },
+            ]
+        )
+
         return button
     }
 
@@ -102,11 +162,14 @@ class Log {
         let table = document.createElement('table')
 
         let tableHead = document.createElement('thead')
-        tableHead.innerHTML = '<tr><th>Hello</th></tr>'
+        tableHead.innerHTML = '<tr><th>logger</th><th>level</th><th>message</th></tr>'
         table.appendChild(tableHead)
 
         let tableBody = document.createElement('tbody')
         table.appendChild(tableBody)
+
+        //TODO: remove:
+        tableBody.classList.add("logfilter-show-weak-A", "logfilter-hide-weak-A-B", "logfilter-show-weak-A-B-C")
 
         return [table, tableBody]
     }
@@ -149,19 +212,6 @@ function setText(node: HTMLElement, text: string) {
     text_nodes[0].textContent = text;
 }
 
-function cycleButton(event: MouseEvent) {
-    const select = event.target as HTMLSelectElement
-    const previous_option = select.selectedOptions[0]
-    const option_to_select = unwrap(select.options.item((select.options.selectedIndex + 1) % select.options.length))
-    const label = select.labels[0]
-
-    select.value = option_to_select.value
-
-    setText(label, option_to_select.value)
-    label.classList.remove(previous_option.className)
-    label.classList.add(option_to_select.className)
-}
-
 let logNode = document.getElementById("logview")
 if (logNode == null) {
     console.log("Error: failed to locate log node.")
@@ -184,6 +234,6 @@ if (logNode == null) {
     }
 }
 
-for (const element of document.getElementsByTagName('select')) {
-    element.addEventListener("click", cycleButton)
-}
+// for (const element of document.getElementsByTagName('select')) {
+//     element.addEventListener("click", cycleButton)
+// }
