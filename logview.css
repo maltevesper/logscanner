@@ -110,24 +110,22 @@ table {
 */
 
 /* level 1 */
-.logfilter-hide-A .log-A,
-.logfilter-hide-weak-A .log-A,
+.logfilter-hide-A:not(.logfilter-show) .log-A,
+.logfilter-hide-weak-A:not(.logfilter-show) .log-A,
 .logfilter-hide.logfilter-show-weak-A .log-A,
 /* level 2 */
-.logfilter-hide-A-B .log-A-B,
-.logfilter-hide-weak-A-B .log-A-B,
-.logfilter-hide.logfilter-show-weak-A-B .log-A-B,
-.logfilter-hide-A.logfilter-show-weak-A-B .log-A-B,
+.logfilter-hide-A-B:not(.logfilter-show, .logfilter-show-A) .log-A-B,
+.logfilter-hide-weak-A-B:not(.logfilter-show, .logfilter-show-A) .log-A-B,
+.logfilter-hide.logfilter-show-weak-A-B:not(.logfilter-show-A) .log-A-B,
+.logfilter-hide-A.logfilter-show-weak-A-B:not(.logfilter-show) .log-A-B,
 /* level 3 */
-.logfilter-hide-A-B-C .log-A-B-C,
-.logfilter-hide-weak-A-B-C .log-A-B-C,
-.logfilter-hide.logfilter-show-weak-A-B-C .log-A-B-C,
-.logfilter-hide-A.logfilter-show-weak-A-B-C .log-A-B-C,
-.logfilter-hide-A-B.logfilter-show-weak-A-B-C .log-A-B-C {
+.logfilter-hide-A-B-C:not(.logfilter-show, .logfilter-show-A, .logfilter-show-A-B-C) .log-A-B-C,
+.logfilter-hide-weak-A-B-C:not(.logfilter-show, .logfilter-show-A, .logfilter-show-A-B-C) .log-A-B-C,
+.logfilter-hide.logfilter-show-weak-A-B-C:not(.logfilter-show-A, .logfilter-show-A-B) .log-A-B-C,
+.logfilter-hide-A.logfilter-show-weak-A-B-C:not(.logfilter-show, .logfilter-show-A-B) .log-A-B-C,
+.logfilter-hide-A-B.logfilter-show-weak-A-B-C:not(.logfilter-show, .logfilter-show-A) .log-A-B-C {
     display: none;
 }
-
-
 
 /* TODO: should we rewrite the rule selectors in a way that we do not need to annotate
 the log messages as .log-A .log-A-B .log-A-B-C?
@@ -143,7 +141,7 @@ but we could stop many false positives in rule matching stop form happening
 => Measure Performance with firefox/edge performance tools once this is working.
 See https://blogs.windows.com/msedgedev/2023/01/17/the-truth-about-css-selector-performance/
 */
-.logfilter-show,
+/* .logfilter-show,
 .logfilter-show .log-A,
 .logfilter-show .log-A-B,
 .logfilter-show .log-A-B-C,
@@ -154,4 +152,4 @@ See https://blogs.windows.com/msedgedev/2023/01/17/the-truth-about-css-selector-
 .logfilter-show-A-B .log-A-B-C,
 .logfilter-show-A-B-C .log-A-B-C {
     display: revert;
-}
+} */
