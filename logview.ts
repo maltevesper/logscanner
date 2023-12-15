@@ -251,7 +251,7 @@ class Log {
         for (const option_spec of options) {
             const option = document.createElement("option")
             option.innerText = option_spec.value
-            option.classList.add(option_spec.class)
+            option.classList.add(...option_spec.class.split(" "))
             select.appendChild(option)
         }
 
@@ -284,6 +284,7 @@ class Log {
 
     createTable(): [HTMLTableElement, HTMLTableSectionElement] {
         let table = document.createElement('table')
+        table.classList.add("logview")
 
         let tableHead = document.createElement('thead')
         tableHead.innerHTML = '<tr><th>logger</th><th>level</th><th>message</th></tr>'
@@ -293,7 +294,7 @@ class Log {
         table.appendChild(tableBody)
 
         //TODO: remove:
-        tableBody.classList.add("logfilter-show_weak-A", "logfilter-hide_weak-A-B", "logfilter-show_weak-A-B-C")
+        tableBody.classList.add("logfilter-show_weak-A", "logfilter-hide_weak-A-B", "logfilter-show_weak-A-B-C", "logfilter-show-A-X")
 
         return [table, tableBody]
     }
@@ -354,6 +355,14 @@ if (logNode == null) {
                     { message: "Godbye", level: 9, logger: "A.B" },
                     { message: "Godbye", level: 10, logger: "A.X" },
                     { message: "Well then", level: 55, logger: "A.B.C" },
+                    { message: "Hello", level: 22, logger: "A" },
+                    { message: "Godbye", level: 29, logger: "A.B" },
+                    { message: "Godbye", level: 20, logger: "A.X" },
+                    { message: "Well then", level: 25, logger: "A.B.C" },
+                    { message: "Hello", level: 30, logger: "A" },
+                    { message: "Godbye", level: 39, logger: "A.B" },
+                    { message: "Godbye", level: 30, logger: "A.X" },
+                    { message: "Well then", level: 35, logger: "A.B.C" },
                 ]
             }
         );

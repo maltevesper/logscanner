@@ -30,47 +30,113 @@ table {
     display: none;
 }
 
+.logview {
+    --notset-color: rgb(0, 0, 0);
+    --debug-color: rgb(100, 100, 100);
+    --info-color: rgb(0, 190, 255);
+    --warn-color: rgb(255, 140, 0);
+    --error-color: rgb(255, 0, 100);
+    --critical-color: rgb(255, 0, 0);
+
+    font-family: monospace;
+    /*background-color: rgb(255, 240, 0);*/
+}
+
+.logview td {
+    width: auto;
+    text-wrap: nowrap;
+    white-space: nowrap;
+}
+
+.logview td:nth-child(3) {
+    width: 90%
+}
+
 .loglevel-notset {
-    background-color: rgb(255, 255, 255);
+    color: var(--notset-color);
 }
 
 .loglevel-info {
-    background-color: rgb(0, 190, 255);
+    color: var(--info-color);
 }
 
 .loglevel-debug {
-    background-color: rgb(255, 240, 0);
+    color: var(--debug-color);
 }
 
 .loglevel-warn {
-    background-color: rgb(255, 140, 0);
+    color: var(--warn-color);
 }
 
 .loglevel-error {
-    background-color: rgb(255, 0, 100);
+    color: var(--error-color);
 }
 
 .loglevel-critical {
-    background-color: rgb(255, 0, 0);
+    color: var(--critical-color);
 }
 
 .logfilter-select-show {
     background-color: rgb(0, 255, 0);
 }
 
+.logfilter-select-show::before {
+    content: '\f0208';
+}
+
 .logfilter-select-show_weak {
     background-color: rgb(34, 150, 34);
+}
+
+.logfilter-select-show_weak:before {
+    content: '\f086c';
 }
 
 .logfilter-select-hide_weak {
     background-color: rgb(124, 0, 0);
 }
 
+.logfilter-select-hide_weak:before {
+    content: '\f15e4';
+}
+
 .logfilter-select-hide {
     background-color: rgb(255, 0, 0);
 }
 
-.logfilter-show {
+.logfilter-select-hide:before {
+    content: '\f0209';
+}
+
+.logfilter-select-hide:before,
+.logfilter-select-hide_weak:before,
+.logfilter-select-show::before,
+.logfilter-select-show_weak:before {
+    font-family: "CaskaydiaMono NF";
+    font-style: normal;
+    font-weight: normal;
+    /* speak: never; */
+
+    display: inline-block;
+    text-decoration: inherit;
+    width: 1em;
+    margin-right: .2em;
+    text-align: center;
+    /* opacity: .8; */
+
+    /* For safety - reset parent styles, that can break glyph codes*/
+    font-variant: normal;
+    text-transform: none;
+
+    /* fix buttons height, for twitter bootstrap */
+    line-height: 1em;
+
+    /* Animation center compensation - margins should be symmetric */
+    /* remove if not needed */
+    margin-left: .2em;
+}
+
+/* .logfilter-show {
     background-color: green;
 }
 
@@ -84,11 +150,7 @@ table {
 
 .logfilter-show_weak {
     background-color: rgb(153, 255, 153);
-}
-
-.log-A {
-    border: 1px blue solid
-}
+} */
 
 /* 
 
