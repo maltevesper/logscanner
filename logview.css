@@ -58,11 +58,11 @@ table {
     background-color: rgb(0, 255, 0);
 }
 
-.logfilter-select-show-weak {
+.logfilter-select-show_weak {
     background-color: rgb(34, 150, 34);
 }
 
-.logfilter-select-hide-weak {
+.logfilter-select-hide_weak {
     background-color: rgb(124, 0, 0);
 }
 
@@ -78,11 +78,11 @@ table {
     background-color: red;
 }
 
-.logfilter-hide-weak {
+.logfilter-hide_weak {
     background-color: lightcoral;
 }
 
-.logfilter-show-weak {
+.logfilter-show_weak {
     background-color: rgb(153, 255, 153);
 }
 
@@ -109,47 +109,7 @@ table {
 
 */
 
-/* level 1 */
-.logfilter-hide-A:not(.logfilter-show) .log-A,
-.logfilter-hide-weak-A:not(.logfilter-show) .log-A,
-.logfilter-hide.logfilter-show-weak-A .log-A,
-/* level 2 */
-.logfilter-hide-A-B:not(.logfilter-show, .logfilter-show-A) .log-A-B,
-.logfilter-hide-weak-A-B:not(.logfilter-show, .logfilter-show-A) .log-A-B,
-.logfilter-hide.logfilter-show-weak-A-B:not(.logfilter-show-A) .log-A-B,
-.logfilter-hide-A.logfilter-show-weak-A-B:not(.logfilter-show) .log-A-B,
-/* level 3 */
-.logfilter-hide-A-B-C:not(.logfilter-show, .logfilter-show-A, .logfilter-show-A-B-C) .log-A-B-C,
-.logfilter-hide-weak-A-B-C:not(.logfilter-show, .logfilter-show-A, .logfilter-show-A-B-C) .log-A-B-C,
-.logfilter-hide.logfilter-show-weak-A-B-C:not(.logfilter-show-A, .logfilter-show-A-B) .log-A-B-C,
-.logfilter-hide-A.logfilter-show-weak-A-B-C:not(.logfilter-show, .logfilter-show-A-B) .log-A-B-C,
-.logfilter-hide-A-B.logfilter-show-weak-A-B-C:not(.logfilter-show, .logfilter-show-A) .log-A-B-C {
-    display: none;
-}
-
-/* TODO: should we rewrite the rule selectors in a way that we do not need to annotate
-the log messages as .log-A .log-A-B .log-A-B-C?
-i.e. => 
-  .logfilter-show-A .log-A,
-  .logfilter-show-A .log-A-B,
-  .logfilter-show-A .log-A-B-C,
-
-As far as I can see only the show rule would be affected,
-but we could stop many false positives in rule matching stop form happening
-(i.e. .hide-A and hide-A-B would no longer match on .log-A-B-C causing the number of rules matched per element to decrease)
-
+/*
 => Measure Performance with firefox/edge performance tools once this is working.
 See https://blogs.windows.com/msedgedev/2023/01/17/the-truth-about-css-selector-performance/
 */
-/* .logfilter-show,
-.logfilter-show .log-A,
-.logfilter-show .log-A-B,
-.logfilter-show .log-A-B-C,
-.logfilter-show-A .log-A,
-.logfilter-show-A .log-A-B,
-.logfilter-show-A .log-A-B-C,
-.logfilter-show-A-B .log-A-B,
-.logfilter-show-A-B .log-A-B-C,
-.logfilter-show-A-B-C .log-A-B-C {
-    display: revert;
-} */

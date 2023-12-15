@@ -62,10 +62,12 @@ function addHiddenClass(baseclass: string) {
 class TreeNode {
     name: string
     children: Array<TreeNode>
+    parent: TreeNode | undefined
 
     constructor(name: string) {
         this.name = name
         this.children = []
+        this.parent = undefined
     }
 
     addChild(node: TreeNode) {
@@ -80,28 +82,150 @@ class Tree {
         this.#root = new TreeNode("__root__")
     }
 
+    #insertNode(name: string, parent: TreeNode): [boolean, TreeNode] {
+        let created: boolean = false
+        let node = parent.children.find((node) => { return node.name == name })
+        if (node === undefined) {
+            node = new TreeNode(name)
+            node.parent = parent
+            parent.children.push(node)
+            created = true
+        }
 
+        return [created, node]
+    }
+
+    insertPath(path: Array<string>) {
+        let parent = this.#root
+        let inserted = false
+
+        for (const path_segment of path) {
+            let insertion
+            [insertion, parent] = this.#insertNode(path_segment, parent)
+            inserted ||= insertion
+        }
+
+        return inserted
+    }
+
+    *walkDepthFirst() {
+        let stack: Array<{ "node": TreeNode, "visited": boolean }> = [{ "node": this.#root, "visited": false }]
+        let annotated_node
+        while (annotated_node = stack.at(-1)) {
+            if (annotated_node.visited) {
+                yield annotated_node.node
+                stack.pop()
+            } else {
+                annotated_node.visited = true
+                annotated_node.node.children.map((child) => { stack.push({ "node": child, "visited": false }) })
+            }
+        }
+    }
+
+    *walkLeafes() {
+        let stack: Array<TreeNode> = [this.#root]
+        let node
+        while (node = stack.pop()) {
+            if (node.children.length) {
+                stack.push.apply(stack, node.children)
+            } else {
+                yield node
+            }
+        }
+    }
 }
 
+function splitLogger(logger: string) {
+    return logger.split(".")
+}
+
+/**
+ * CSS rule writing algorithm:
+ * 1.) Build logger tree / get all loggers (just use a hashmap, when a logger is actually inserted insert the parents)
+ * 2.) for each logger write the following:
+ *    
+ *     for logger in loggers:
+ *         css-selectors += "    .logfilter-hide-{logger}:not({",".join(".logfilter-show-{p}" for p in logger.parents)}) .log-{logger}"
+ *         css-selectors += ".logfilter-hideweak-{logger}:not({",".join(".logfilter-show-{p}" for p in logger.parents)}) .log-{logger}"
+ *         for parent in logger.parents:
+ *             css-selectors += ".logfilter-hide-{parent}.logfilter-showweak-{logger}:not({",".join(".logfilter-show-{p}" for p in logger.parents if p != parent)}) .log-{logger}"
+ */
+
+/**
+ * Generate controls
+ * 
+ * 1) generate logger tree
+ * 2) traverse the tree (depth first) and generate hide buttons which are level based
+ */
 class Log {
     #data: LogType
     #table: HTMLTableElement
     #table_body: HTMLTableSectionElement
     #stylesheet: CSSStyleSheet
+    #logger_tree: Tree
 
     constructor(table_container: HTMLElement, control_container: HTMLElement, log_data: LogType) {
         this.#data = log_data;
         [this.#table, this.#table_body] = this.createTable()
         table_container.appendChild(this.#table)
 
+        this.#stylesheet = new CSSStyleSheet()
+        document.adoptedStyleSheets.push(this.#stylesheet)
+
+        this.#logger_tree = new Tree()
+
         for (const record of this.#data.records) {
             this.insertRow(record);
         }
 
-        control_container.appendChild(this.createControls())
+        this.buildStylesheet()
 
-        this.#stylesheet = new CSSStyleSheet()
-        document.adoptedStyleSheets.push(this.#stylesheet)
+        control_container.appendChild(this.createControls())
+    }
+
+    buildStylesheet() {
+        // TODO compare array<string> join vs string append with +=
+        let css_selectors: Array<string> = []
+
+        for (const logger_node of this.#logger_tree.walkDepthFirst()) {
+            if (logger_node.parent === undefined) {
+                break;
+            }
+
+            const logger_segments: Array<string> = []
+
+            let node = logger_node
+            while (node.parent !== undefined) {
+                logger_segments.unshift(node.name)
+                node = node.parent
+            }
+
+            const logger = logger_segments.join("-")
+            let logger_parents: Array<string> = []
+
+            for (let i = 1; i < logger_segments.length; ++i) {
+                logger_parents.push(logger_segments.slice(0, i).join("-"))
+            }
+
+            const parent_show_selectors = logger_parents.map((parent) => { return `.logfilter-show-${parent}` })
+            const show_selectors_with_root = [".logfilter-show", ...parent_show_selectors]
+            const negated_term = `:not(${show_selectors_with_root.join(", ")})`
+
+            css_selectors.push(`.logfilter-hide-${logger}${negated_term} .log-${logger}`)
+            css_selectors.push(`.logfilter-hide_weak-${logger}${negated_term} .log-${logger}`)
+
+            let negated_term2 = (parent_show_selectors.length) ? `:not(${parent_show_selectors.join(", ")})` : ""
+            css_selectors.push(`.logfilter-hide.logfilter-show_weak-${logger}${negated_term2} .log-${logger}`)
+
+            for (const parent of logger_parents) {
+                const cleaned_negated_term = `:not(${show_selectors_with_root.filter((selector) => { return selector != `.logfilter-show-${parent}` }).join(", ")})`
+                css_selectors.push(`.logfilter-hide-${parent}.logfilter-show_weak-${logger}${cleaned_negated_term} .log-${logger}`)
+            }
+        }
+
+        const css_rule = `${css_selectors.join(",\n")} { display: none; }`
+        console.log(css_rule)
+        this.#stylesheet.replaceSync(css_rule)
     }
 
     cycleButton(event: MouseEvent) {
@@ -149,8 +273,8 @@ class Log {
         const button = this.makeButton(
             [
                 { "label": "show", "value": "logfilter-show", "class": "logfilter-select-show" },
-                { "label": "show (weak)", "value": "logfilter-show-weak", "class": "logfilter-select-show-weak" },
-                { "label": "hide (weak)", "value": "logfilter-hide-weak", "class": "logfilter-select-hide-weak" },
+                { "label": "show (weak)", "value": "logfilter-show_weak", "class": "logfilter-select-show_weak" },
+                { "label": "hide (weak)", "value": "logfilter-hide_weak", "class": "logfilter-select-hide_weak" },
                 { "label": "hide", "value": "logfilter-hide", "class": "logfilter-select-hide" },
             ]
         )
@@ -169,7 +293,7 @@ class Log {
         table.appendChild(tableBody)
 
         //TODO: remove:
-        tableBody.classList.add("logfilter-show-weak-A", "logfilter-hide-weak-A-B", "logfilter-show-weak-A-B-C")
+        tableBody.classList.add("logfilter-show_weak-A", "logfilter-hide_weak-A-B", "logfilter-show_weak-A-B-C")
 
         return [table, tableBody]
     }
@@ -192,6 +316,8 @@ class Log {
         row.insertCell().innerText = record.message
 
         this.#table_body.appendChild(row)
+
+        return this.#logger_tree.insertPath(splitLogger(record.logger))
     }
 }
 
@@ -220,7 +346,7 @@ if (logNode == null) {
     if (controlNode == null) {
         console.log("Error: failed to locate log node.")
     } else {
-        new Log(logNode,
+        var y = new Log(logNode,
             controlNode,
             {
                 records: [
