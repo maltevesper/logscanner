@@ -31,9 +31,18 @@ type SelectOption = {
     class: string;
 }
 
+function* iterateEnum(enum_instance: {}) {
+    for (const key in Object.keys(enum_instance)) {
+        if (isNaN(Number(key))) {
+            yield key
+        }
+    }
+}
+
 function toLevelCategory(numeric_level: number): LogLevel {
     let level: LogLevel = LogLevel.NOTSET
 
+    // TODO: use iterateEnum? might be worse, since this quits walking the enum early
     Object.keys(LogLevel).every((key, index) => {
         const key_index = Number(key)
 
@@ -51,12 +60,6 @@ function toLevelCategory(numeric_level: number): LogLevel {
     })
 
     return level;
-}
-
-function addHiddenClass(baseclass: string) {
-    for (const element of document.getElementsByClassName(baseclass)) {
-        element.classList.toggle("hide");
-    }
 }
 
 class TreeNode {
@@ -183,9 +186,11 @@ class Log {
         control_container.appendChild(this.createControls())
     }
 
-    buildStylesheet() {
+    buildStylesheet(level: string) {
         // TODO compare array<string> join vs string append with +=
         let css_selectors: Array<string> = []
+        const level_selector = level ? `.${level}` : ""
+        level = level ? level : "ALL"
 
         for (const logger_node of this.#logger_tree.walkDepthFirst()) {
             if (logger_node.parent === undefined) {
@@ -197,29 +202,33 @@ class Log {
             let node = logger_node
             while (node.parent !== undefined) {
                 logger_segments.unshift(node.name)
+                // TODO: sanatize node names: "-"" => "--" to avoid hacks where constructed logger names interfer with our class names
                 node = node.parent
             }
 
             const logger = logger_segments.join("-")
+
             let logger_parents: Array<string> = []
 
             for (let i = 1; i < logger_segments.length; ++i) {
                 logger_parents.push(logger_segments.slice(0, i).join("-"))
             }
 
+            const log_scope = `.log-${logger}${level_selector}`
+
             const parent_show_selectors = logger_parents.map((parent) => { return `.logfilter-show-${parent}` })
             const show_selectors_with_root = [".logfilter-show", ...parent_show_selectors]
             const negated_term = `:not(${show_selectors_with_root.join(", ")})`
 
-            css_selectors.push(`.logfilter-hide-${logger}${negated_term} .log-${logger}`)
-            css_selectors.push(`.logfilter-hide_weak-${logger}${negated_term} .log-${logger}`)
+            css_selectors.push(`.logfilter-hide-${level}-${logger}${negated_term} ${log_scope}`)
+            css_selectors.push(`.logfilter-hide_weak-${level}-${logger}${negated_term} ${log_scope}`)
 
             let negated_term2 = (parent_show_selectors.length) ? `:not(${parent_show_selectors.join(", ")})` : ""
-            css_selectors.push(`.logfilter-hide.logfilter-show_weak-${logger}${negated_term2} .log-${logger}`)
+            css_selectors.push(`.logfilter-hide-${level}.logfilter-show_weak-${level}-${logger}${negated_term2} ${log_scope}`)
 
             for (const parent of logger_parents) {
                 const cleaned_negated_term = `:not(${show_selectors_with_root.filter((selector) => { return selector != `.logfilter-show-${parent}` }).join(", ")})`
-                css_selectors.push(`.logfilter-hide-${parent}.logfilter-show_weak-${logger}${cleaned_negated_term} .log-${logger}`)
+                css_selectors.push(`.logfilter-hide-${level}-${parent}.logfilter-show_weak-${level}-${logger}${cleaned_negated_term} ${log_scope}`)
             }
         }
 
@@ -272,10 +281,10 @@ class Log {
         // return button
         const button = this.makeButton(
             [
-                { "label": "show", "value": "logfilter-show", "class": "logfilter-select-show" },
-                { "label": "show (weak)", "value": "logfilter-show_weak", "class": "logfilter-select-show_weak" },
-                { "label": "hide (weak)", "value": "logfilter-hide_weak", "class": "logfilter-select-hide_weak" },
-                { "label": "hide", "value": "logfilter-hide", "class": "logfilter-select-hide" },
+                { "label": "show", "value": "logfilter-show-ALL", "class": "logfilter-select-show" },
+                { "label": "show (weak)", "value": "logfilter-show_weak-ALL", "class": "logfilter-select-show_weak" },
+                { "label": "hide (weak)", "value": "logfilter-hide_weak-ALL", "class": "logfilter-select-hide_weak" },
+                { "label": "hide", "value": "logfilter-hide-ALL", "class": "logfilter-select-hide" },
             ]
         )
 
@@ -294,7 +303,7 @@ class Log {
         table.appendChild(tableBody)
 
         //TODO: remove:
-        tableBody.classList.add("logfilter-show_weak-A", "logfilter-hide_weak-A-B", "logfilter-show_weak-A-B-C", "logfilter-show-A-X")
+        tableBody.classList.add("logfilter-show_weak-ALL-A", "logfilter-hide_weak-ALL-A-B", "logfilter-show_weak-ALL-A-B-C", "logfilter-show-ALL-A-X")
 
         return [table, tableBody]
     }
@@ -313,7 +322,7 @@ class Log {
             this.#loggername_to_class(record.logger)
         )
         row.insertCell().innerText = record.logger + "-" + this.#loggername_to_class(record.logger)
-        row.insertCell().innerText = level_category
+        row.insertCell().innerHTML = `<p>${level_category}</p>`
         row.insertCell().innerText = record.message
 
         this.#table_body.appendChild(row)

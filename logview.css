@@ -34,22 +34,53 @@ table {
     --notset-color: rgb(0, 0, 0);
     --debug-color: rgb(100, 100, 100);
     --info-color: rgb(0, 190, 255);
-    --warn-color: rgb(255, 140, 0);
+    --warn-color: rgb(253, 177, 78);
+    --warn-color-text: rgb(250, 209, 26);
     --error-color: rgb(255, 0, 100);
     --critical-color: rgb(255, 0, 0);
+
+    background-color: rgb(185, 185, 185);
 
     font-family: monospace;
     /*background-color: rgb(255, 240, 0);*/
 }
 
+/* distribute space */
 .logview td {
     width: auto;
-    text-wrap: nowrap;
+    /*    text-wrap: nowrap;*/
     white-space: nowrap;
 }
 
 .logview td:nth-child(3) {
     width: 90%
+}
+
+/* END distribute space */
+
+/* Colorpills on the second column (should propably just generate better markup */
+.logview td:nth-child(2) p {
+    border-radius: .5em;
+    border-spacing: 2px;
+    margin: 1px;
+    text-align: center;
+    font-weight: 900;
+    padding: .05em .5em;
+}
+
+.logview .loglevel-error td:nth-child(2) p {
+    color: rgb(240, 240, 240);
+    background-color: var(--error-color);
+}
+
+.logview .loglevel-warn td:nth-child(2) p {
+    color: rgb(240, 240, 240);
+    background-color: var(--warn-color);
+}
+
+.logview .loglevel-critical td:nth-child(2) p {
+    color: rgb(240, 240, 240);
+    background-color: var(--critical-color);
 }
 
 .loglevel-notset {
@@ -65,7 +96,7 @@ table {
 }
 
 .loglevel-warn {
-    color: var(--warn-color);
+    color: var(--warn-color-text);
 }
 
 .loglevel-error {
