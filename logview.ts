@@ -1,10 +1,10 @@
 // TODO: we should specify a log json format...
-type JSONValue =
-    | string
-    | number
-    | boolean
-    | { [x: string]: JSONValue }
-    | Array<JSONValue>
+// type JSONValue =
+//     | string
+//     | number
+//     | boolean
+//     | { [x: string]: JSONValue }
+//     | Array<JSONValue>
 
 type LogType = {
     records: Array<LogRecord>;
@@ -32,114 +32,118 @@ type SelectOption = {
 }
 
 function* iterateEnum(enum_instance: {}) {
-    for (const key in Object.keys(enum_instance)) {
+    for (const key of Object.keys(enum_instance)) {
         if (isNaN(Number(key))) {
-            yield key
+            yield key;
         }
     }
 }
 
 function toLevelCategory(numeric_level: number): LogLevel {
-    let level: LogLevel = LogLevel.NOTSET
+    let level: LogLevel = LogLevel.NOTSET;
 
     // TODO: use iterateEnum? might be worse, since this quits walking the enum early
-    Object.keys(LogLevel).every((key, index) => {
-        const key_index = Number(key)
+    Object.keys(LogLevel).every((key) => {
+        const key_index = Number(key);
 
         // Once we reach the text keys we are done
         if (isNaN(key_index)) {
-            return false
+            return false;
         }
 
         if (key_index <= numeric_level) {
-            level = key_index
-            return true
+            level = key_index;
+            return true;
         }
 
-        return false
-    })
+        return false;
+    });
 
     return level;
 }
 
 class TreeNode {
-    name: string
-    children: Array<TreeNode>
-    parent: TreeNode | undefined
+    name: string;
+    children: Array<TreeNode>;
+    parent: TreeNode | undefined;
 
     constructor(name: string) {
-        this.name = name
-        this.children = []
-        this.parent = undefined
+        this.name = name;
+        this.children = [];
+        this.parent = undefined;
     }
 
     addChild(node: TreeNode) {
-        this.children.push(node)
+        this.children.push(node);
     }
 }
 
 class Tree {
-    #root: TreeNode
+    #root: TreeNode;
 
     constructor() {
-        this.#root = new TreeNode("__root__")
+        this.#root = new TreeNode("__root__");
     }
 
     #insertNode(name: string, parent: TreeNode): [boolean, TreeNode] {
-        let created: boolean = false
-        let node = parent.children.find((node) => { return node.name == name })
+        let created: boolean = false;
+        let node = parent.children.find((node) => { return node.name == name; });
         if (node === undefined) {
-            node = new TreeNode(name)
-            node.parent = parent
-            parent.children.push(node)
-            created = true
+            node = new TreeNode(name);
+            node.parent = parent;
+            parent.children.push(node);
+            created = true;
         }
 
-        return [created, node]
+        return [created, node];
     }
 
     insertPath(path: Array<string>) {
-        let parent = this.#root
-        let inserted = false
+        let parent = this.#root;
+        let inserted = false;
 
         for (const path_segment of path) {
-            let insertion
-            [insertion, parent] = this.#insertNode(path_segment, parent)
-            inserted ||= insertion
+            let insertion;
+            [insertion, parent] = this.#insertNode(path_segment, parent);
+            inserted ||= insertion;
         }
 
-        return inserted
+        return inserted;
     }
 
     *walkDepthFirst() {
-        let stack: Array<{ "node": TreeNode, "visited": boolean }> = [{ "node": this.#root, "visited": false }]
-        let annotated_node
+        const stack: Array<{ "node": TreeNode, "visited": boolean }> = [{ "node": this.#root, "visited": false }];
+        let annotated_node;
         while (annotated_node = stack.at(-1)) {
             if (annotated_node.visited) {
-                yield annotated_node.node
-                stack.pop()
+                yield annotated_node.node;
+                stack.pop();
             } else {
-                annotated_node.visited = true
-                annotated_node.node.children.map((child) => { stack.push({ "node": child, "visited": false }) })
+                annotated_node.visited = true;
+                annotated_node.node.children.map((child) => { stack.push({ "node": child, "visited": false }); });
             }
         }
     }
 
     *walkLeafes() {
-        let stack: Array<TreeNode> = [this.#root]
-        let node
+        const stack: Array<TreeNode> = [this.#root];
+        let node;
         while (node = stack.pop()) {
             if (node.children.length) {
-                stack.push.apply(stack, node.children)
+                stack.push(...node.children);
             } else {
-                yield node
+                yield node;
             }
         }
+    }
+
+    getRoot() {
+        return this.#root;
     }
 }
 
 function splitLogger(logger: string) {
-    return logger.split(".")
+    return logger.split(".");
 }
 
 /**
@@ -154,6 +158,20 @@ function splitLogger(logger: string) {
  *             css-selectors += ".logfilter-hide-{parent}.logfilter-showweak-{logger}:not({",".join(".logfilter-show-{p}" for p in logger.parents if p != parent)}) .log-{logger}"
  */
 
+function loggerNameFromNode(logger_node: TreeNode) {
+    const logger_segments: Array<string> = [];
+
+    let node = logger_node;
+    while (node.parent !== undefined) {
+        logger_segments.unshift(node.name);
+        // TODO: sanatize node names: "-"" => "--" to avoid hacks where constructed logger names interfer with our class names
+        node = node.parent;
+    }
+
+    const logger = logger_segments.join("-");
+    return logger;
+}
+
 /**
  * Generate controls
  * 
@@ -161,202 +179,261 @@ function splitLogger(logger: string) {
  * 2) traverse the tree (depth first) and generate hide buttons which are level based
  */
 class Log {
-    #data: LogType
-    #table: HTMLTableElement
-    #table_body: HTMLTableSectionElement
-    #stylesheet: CSSStyleSheet
-    #logger_tree: Tree
+    #data: LogType;
+    #table: HTMLTableElement;
+    #table_body: HTMLTableSectionElement;
+    #stylesheet: CSSStyleSheet;
+    #logger_tree: Tree;
 
     constructor(table_container: HTMLElement, control_container: HTMLElement, log_data: LogType) {
         this.#data = log_data;
-        [this.#table, this.#table_body] = this.createTable()
-        table_container.appendChild(this.#table)
+        [this.#table, this.#table_body] = this.createTable();
+        table_container.appendChild(this.#table);
 
-        this.#stylesheet = new CSSStyleSheet()
-        document.adoptedStyleSheets.push(this.#stylesheet)
+        this.#stylesheet = new CSSStyleSheet();
+        document.adoptedStyleSheets.push(this.#stylesheet);
 
-        this.#logger_tree = new Tree()
+        this.#logger_tree = new Tree();
 
         for (const record of this.#data.records) {
             this.insertRow(record);
         }
 
-        this.buildStylesheet()
+        this.buildStylesheet();
+        this.initializeFilters();
 
-        control_container.appendChild(this.createControls())
+        control_container.appendChild(this.createControls());
     }
 
-    buildStylesheet(level: string) {
+    initializeFilters() {
+        // TODO: function to turn logger_node into logger name
+        for (const logger_node of this.#logger_tree.walkDepthFirst()) {
+            if (logger_node.parent === undefined) {
+                break;
+            }
+
+            const logger = loggerNameFromNode(logger_node);
+
+            for (const level of iterateEnum(LogLevel)) {
+                this.#table_body.classList.add(`logfilter-show_weak-${level.toLowerCase()}-${logger}`);
+            }
+        }
+    }
+
+    buildStylesheet() {
         // TODO compare array<string> join vs string append with +=
-        let css_selectors: Array<string> = []
-        const level_selector = level ? `.${level}` : ""
-        level = level ? level : "ALL"
+        const css_selectors: Array<string> = [];
 
         for (const logger_node of this.#logger_tree.walkDepthFirst()) {
             if (logger_node.parent === undefined) {
                 break;
             }
 
-            const logger_segments: Array<string> = []
+            const logger_segments: Array<string> = [];
 
-            let node = logger_node
+            let node = logger_node;
             while (node.parent !== undefined) {
-                logger_segments.unshift(node.name)
+                logger_segments.unshift(node.name);
                 // TODO: sanatize node names: "-"" => "--" to avoid hacks where constructed logger names interfer with our class names
-                node = node.parent
+                node = node.parent;
             }
 
-            const logger = logger_segments.join("-")
+            const logger = logger_segments.join("-");
 
-            let logger_parents: Array<string> = []
+            const logger_parents: Array<string> = [];
 
             for (let i = 1; i < logger_segments.length; ++i) {
-                logger_parents.push(logger_segments.slice(0, i).join("-"))
+                logger_parents.push(logger_segments.slice(0, i).join("-"));
             }
 
-            const log_scope = `.log-${logger}${level_selector}`
+            for (let level of iterateEnum(LogLevel)) {
+                level = level.toLowerCase();
+                const log_scope = `.log-${logger}.loglevel-${level}`;
 
-            const parent_show_selectors = logger_parents.map((parent) => { return `.logfilter-show-${parent}` })
-            const show_selectors_with_root = [".logfilter-show", ...parent_show_selectors]
-            const negated_term = `:not(${show_selectors_with_root.join(", ")})`
+                const parent_show_selectors = logger_parents.map((parent) => { return `.logfilter-show-${level}-${parent}`; });
+                const show_selectors_with_root = [`.logfilter-show-${level}`, ...parent_show_selectors];
+                const negated_term = `:not(${show_selectors_with_root.join(", ")})`;
 
-            css_selectors.push(`.logfilter-hide-${level}-${logger}${negated_term} ${log_scope}`)
-            css_selectors.push(`.logfilter-hide_weak-${level}-${logger}${negated_term} ${log_scope}`)
+                css_selectors.push(`.logfilter-hide-${level}-${logger}${negated_term} ${log_scope}`);
+                css_selectors.push(`.logfilter-hide_weak-${level}-${logger}${negated_term} ${log_scope}`);
 
-            let negated_term2 = (parent_show_selectors.length) ? `:not(${parent_show_selectors.join(", ")})` : ""
-            css_selectors.push(`.logfilter-hide-${level}.logfilter-show_weak-${level}-${logger}${negated_term2} ${log_scope}`)
+                const negated_term2 = (parent_show_selectors.length) ? `:not(${parent_show_selectors.join(", ")})` : "";
+                css_selectors.push(`.logfilter-hide-${level}.logfilter-show_weak-${level}-${logger}${negated_term2} ${log_scope}`);
 
-            for (const parent of logger_parents) {
-                const cleaned_negated_term = `:not(${show_selectors_with_root.filter((selector) => { return selector != `.logfilter-show-${parent}` }).join(", ")})`
-                css_selectors.push(`.logfilter-hide-${level}-${parent}.logfilter-show_weak-${level}-${logger}${cleaned_negated_term} ${log_scope}`)
+                for (const parent of logger_parents) {
+                    const cleaned_negated_term = `:not(${show_selectors_with_root.filter((selector) => { return selector != `.logfilter-show-${level}-${parent}`; }).join(", ")})`;
+                    css_selectors.push(`.logfilter-hide-${level}-${parent}.logfilter-show_weak-${level}-${logger}${cleaned_negated_term} ${log_scope}`);
+                }
             }
         }
 
-        const css_rule = `${css_selectors.join(",\n")} { display: none; }`
-        console.log(css_rule)
-        this.#stylesheet.replaceSync(css_rule)
+        const css_rule = `${css_selectors.join(",\n")} { display: none; }`;
+        console.log(css_rule);
+        this.#stylesheet.replaceSync(css_rule);
     }
 
     cycleButton(event: MouseEvent) {
-        const select = event.target as HTMLSelectElement
-        const previous_option = select.selectedOptions[0]
-        const option_to_select = unwrap(select.options.item((select.options.selectedIndex + 1) % select.options.length))
-        const label = select.labels[0]
+        const select = event.target as HTMLSelectElement;
+        const previous_option = select.selectedOptions[0];
+        const option_to_select = unwrap(select.options.item((select.options.selectedIndex + 1) % select.options.length));
+        const label = select.labels[0];
 
-        select.value = option_to_select.value
+        select.value = option_to_select.value;
 
-        setText(label, option_to_select.value)
-        label.classList.remove(previous_option.className)
-        label.classList.add(option_to_select.className)
+        setText(label, option_to_select.value);
+        label.classList.remove(previous_option.className);
+        label.classList.add(option_to_select.className);
 
-        this.#table_body.classList.remove(previous_option.value)
-        this.#table_body.classList.add(option_to_select.value)
+        this.#table_body.classList.remove(previous_option.value);
+        this.#table_body.classList.add(option_to_select.value);
     }
 
-    makeButton(options: Array<SelectOption>): HTMLLabelElement {
-        const button = document.createElement("label")
-        const select = document.createElement("select")
+    changeButton(event: Event) {
+        //console.log(`The event has resulted in option ${event.target.value} being selected`);
+
+        //this.#table_body.classList.remove(previous_option.value);
+        // TODO: store previous value as data, store level as data?
+        const re = /logfilter-(show|hide)(_weak)?-/;
+        let level = event.target.value.replace(re, "");
+        this.#table_body.classList.remove(`logfilter-show_weak-${level}`, `logfilter-show-${level}`, `logfilter-hide_weak-${level}`, `logfilter-hide-${level}`);
+
+        this.#table_body.classList.add(event.target.value);
+    }
+
+    makeButton(options: Array<SelectOption>): HTMLElement { //HTMLLabelElement {
+        //const button = document.createElement("label");
+        const select = document.createElement("ted-dropdown");
 
         for (const option_spec of options) {
-            const option = document.createElement("option")
-            option.innerText = option_spec.value
-            option.classList.add(...option_spec.class.split(" "))
-            select.appendChild(option)
+            const option = document.createElement("option");
+            option.innerText = option_spec.value;
+            option.classList.add(...option_spec.class.split(" "));
+            select.appendChild(option);
         }
 
-        select.value = options[0].value
+        //select.value = options[0].value;
 
-        button.innerText = options[0].value
-        button.classList.add("multibutton")
+        // button.innerText = options[0].value;
+        // button.classList.add("multibutton");
 
-        button.appendChild(select)
-        select.addEventListener("click", this.cycleButton.bind(this))
-        return button
+        // button.appendChild(select);
+        select.addEventListener("change", this.changeButton.bind(this));
+        //return button;
+        return select;
     }
 
     createControls() {
+        const button_bar = document.createElement("div");
+        this.createControlTreeRecursive(button_bar, this.#logger_tree.getRoot());
+        return button_bar;
+    }
+
+    createControlsButtonBar(logger: string) {
         // let button = document.createElement("div")
         // button.innerHTML = "click me!"
         // button.addEventListener("click", event => { addHiddenClass("loglevel-critical"); })
         // return button
-        const button = this.makeButton(
-            [
-                { "label": "show", "value": "logfilter-show-ALL", "class": "logfilter-select-show" },
-                { "label": "show (weak)", "value": "logfilter-show_weak-ALL", "class": "logfilter-select-show_weak" },
-                { "label": "hide (weak)", "value": "logfilter-hide_weak-ALL", "class": "logfilter-select-hide_weak" },
-                { "label": "hide", "value": "logfilter-hide-ALL", "class": "logfilter-select-hide" },
-            ]
-        )
+        const button_bar = document.createElement("div");
 
-        return button
+        //for (let node=this.#logger_tree)
+        for (let level of iterateEnum(LogLevel)) {
+            level = level.toLowerCase();
+            const button = this.makeButton(
+                [
+                    { "label": "show &#xf44b", "value": `logfilter-show-${level}${logger}`, "class": "logfilter-select-show" },
+                    { "label": "show (weak)", "value": `logfilter-show_weak-${level}${logger}`, "class": "logfilter-select-show_weak" },
+                    { "label": "hide (weak)", "value": `logfilter-hide_weak-${level}${logger}`, "class": "logfilter-select-hide_weak" },
+                    { "label": "hide", "value": `logfilter-hide-${level}${logger}`, "class": "logfilter-select-hide" },
+                ]
+            );
+
+            button_bar.appendChild(button);
+        }
+
+        return button_bar;
+    }
+
+    createControlTreeRecursive(html_parent: HTMLElement, node: TreeNode) {
+        const container = document.createElement("div");
+        container.innerText = node.name;
+
+        const logger_name = loggerNameFromNode(node);
+
+        container.appendChild(this.createControlsButtonBar(logger_name != "" ? `-${logger_name}` : ""));
+
+        for (const child of node.children) {
+            this.createControlTreeRecursive(container, child);
+        }
+
+        html_parent.appendChild(container);
     }
 
     createTable(): [HTMLTableElement, HTMLTableSectionElement] {
-        let table = document.createElement('table')
-        table.classList.add("logview")
+        const table = document.createElement("table");
+        table.classList.add("logview");
 
-        let tableHead = document.createElement('thead')
-        tableHead.innerHTML = '<tr><th>logger</th><th>level</th><th>message</th></tr>'
-        table.appendChild(tableHead)
+        const tableHead = document.createElement("thead");
+        tableHead.innerHTML = "<tr><th>logger</th><th>level</th><th>message</th></tr>";
+        table.appendChild(tableHead);
 
-        let tableBody = document.createElement('tbody')
-        table.appendChild(tableBody)
+        const tableBody = document.createElement("tbody");
+        table.appendChild(tableBody);
 
         //TODO: remove:
-        tableBody.classList.add("logfilter-show_weak-ALL-A", "logfilter-hide_weak-ALL-A-B", "logfilter-show_weak-ALL-A-B-C", "logfilter-show-ALL-A-X")
+        //tableBody.classList.add("logfilter-show_weak-warn-A", "logfilter-hide_weak-warn-A-B", "logfilter-show_weak-warn-A-B-C", "logfilter-show-warn-A-X")
 
-        return [table, tableBody]
+        return [table, tableBody];
     }
 
     #loggername_to_class(logger_name: string) {
-        return "log-" + logger_name.replaceAll(".", "-")
+        return "log-" + logger_name.replaceAll(".", "-");
     }
 
     insertRow(record: LogRecord) {
-        let level_category = LogLevel[toLevelCategory(record.level)]
+        const level_category = LogLevel[toLevelCategory(record.level)];
 
-        let row = document.createElement('tr')
+        const row = document.createElement("tr");
 
         row.classList.add(
             `loglevel-${level_category.toLowerCase()}`,
             this.#loggername_to_class(record.logger)
-        )
-        row.insertCell().innerText = record.logger + "-" + this.#loggername_to_class(record.logger)
-        row.insertCell().innerHTML = `<p>${level_category}</p>`
-        row.insertCell().innerText = record.message
+        );
+        row.insertCell().innerText = record.logger + "-" + this.#loggername_to_class(record.logger);
+        row.insertCell().innerHTML = `<p>${level_category}</p>`;
+        row.insertCell().innerText = record.message;
 
-        this.#table_body.appendChild(row)
+        this.#table_body.appendChild(row);
 
-        return this.#logger_tree.insertPath(splitLogger(record.logger))
+        return this.#logger_tree.insertPath(splitLogger(record.logger));
     }
 }
 
 function unwrap<T>(item: T | null | undefined, message?: string): T | never {
     if (item === undefined || item === null) {
-        throw new Error(message ?? "Item undefined or null")
+        throw new Error(message ?? "Item undefined or null");
     }
 
-    return item
+    return item;
 }
 
 function setText(node: HTMLElement, text: string) {
     const text_nodes = [...node.childNodes].filter((childNode) => {
-        return (childNode.nodeType === Node.TEXT_NODE)
-    })
+        return (childNode.nodeType === Node.TEXT_NODE);
+    });
 
-    text_nodes.forEach((text_node: ChildNode) => { text_node.textContent = "" });
+    text_nodes.forEach((text_node: ChildNode) => { text_node.textContent = ""; });
     text_nodes[0].textContent = text;
 }
 
-let logNode = document.getElementById("logview")
+const logNode = document.getElementById("logview");
 if (logNode == null) {
-    console.log("Error: failed to locate log node.")
+    console.log("Error: failed to locate log node.");
 } else {
-    let controlNode = document.getElementById("controls")
+    const controlNode = document.getElementById("controls");
     if (controlNode == null) {
-        console.log("Error: failed to locate log node.")
+        console.log("Error: failed to locate log node.");
     } else {
-        var y = new Log(logNode,
+        const y = new Log(logNode,
             controlNode,
             {
                 records: [
@@ -377,7 +454,3 @@ if (logNode == null) {
         );
     }
 }
-
-// for (const element of document.getElementsByTagName('select')) {
-//     element.addEventListener("click", cycleButton)
-// }
