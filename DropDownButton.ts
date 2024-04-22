@@ -122,7 +122,7 @@ class DropDownButton extends TEDCustomElement {
 
           so as a workaround we move the nodes...
         */
-        this.shadowRoot!.addEventListener("slotchange", (_event: Event) => {
+        this.shadowRoot!.addEventListener("slotchange", () => {
             const node = this.querySelector("option");
 
             if (node == null) {
@@ -152,7 +152,7 @@ class DropDownButton extends TEDCustomElement {
             event.preventDefault();
         });
 
-        this.select.addEventListener("change", (event) => {
+        this.select.addEventListener("change", () => {
             setText(this.shadowRoot!.getElementById("button")!, select.options[select.selectedIndex].text);
             this.shadowRoot!.getElementById("button-box")!.dataset.selected = select.options[select.selectedIndex].value;
             this.shadowRoot!.host.dataset.selected = select.options[select.selectedIndex].value;
@@ -173,21 +173,21 @@ class DropDownButton extends TEDCustomElement {
         this.tabIndex = 0;
     }
 
-    connectedCallback() {
-        console.log("Custom element added to page.");
-    }
+    // connectedCallback() {
+    //     console.log("Custom element added to page.");
+    // }
 
-    disconnectedCallback() {
-        console.log("Custom element removed from page.");
-    }
+    // disconnectedCallback() {
+    //     console.log("Custom element removed from page.");
+    // }
 
-    adoptedCallback() {
-        console.log("Custom element moved to new page.");
-    }
+    // adoptedCallback() {
+    //     console.log("Custom element moved to new page.");
+    // }
 
-    attributeChangedCallback(name: string, oldValue: any, newValue: any) {
-        console.log(`Attribute ${name} has changed.`);
-    }
+    // attributeChangedCallback(name: string, oldValue: any, newValue: any) {
+    //     console.log(`Attribute ${name} has changed.`);
+    // }
 
     clicked() {
         let option_to_select = this.select.selectedOptions[0]!;
