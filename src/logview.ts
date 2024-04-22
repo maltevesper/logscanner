@@ -280,7 +280,7 @@ class Log {
 
         select.value = option_to_select.value;
 
-        setText(label, option_to_select.value);
+        setText2(label, option_to_select.value);
         label.classList.remove(previous_option.className);
         label.classList.add(option_to_select.className);
 
@@ -293,11 +293,12 @@ class Log {
 
         //this.#table_body.classList.remove(previous_option.value);
         // TODO: store previous value as data, store level as data?
+        const element = event.currentTarget as HTMLInputElement;
         const re = /logfilter-(show|hide)(_weak)?-/;
-        let level = event.target.value.replace(re, "");
+        const level = element.value.replace(re, "");
         this.#table_body.classList.remove(`logfilter-show_weak-${level}`, `logfilter-show-${level}`, `logfilter-hide_weak-${level}`, `logfilter-hide-${level}`);
 
-        this.#table_body.classList.add(event.target.value);
+        this.#table_body.classList.add(element.value);
     }
 
     makeButton(options: Array<SelectOption>): HTMLElement { //HTMLLabelElement {
@@ -416,7 +417,7 @@ function unwrap<T>(item: T | null | undefined, message?: string): T | never {
     return item;
 }
 
-function setText(node: HTMLElement, text: string) {
+function setText2(node: HTMLElement, text: string) { // TODO: remove (is a duplicate function also present in dropdonwbutton)
     const text_nodes = [...node.childNodes].filter((childNode) => {
         return (childNode.nodeType === Node.TEXT_NODE);
     });

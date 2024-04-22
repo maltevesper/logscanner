@@ -37,7 +37,7 @@ abstract class TEDCustomElement extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ "mode": "open" });
-        this.shadowRoot!.appendChild(this.constructor.template.content.cloneNode(true));
+        this.shadowRoot!.appendChild((this.constructor as typeof TEDCustomElement).template.content.cloneNode(true));
     }
 }
 
@@ -47,7 +47,7 @@ abstract class TEDCustomElement extends HTMLElement {
 */
 function addClassOnDeactivation(element: HTMLElement, css_class: string) {
     const outside_click_listener = (event: MouseEvent) => {
-        if (!event.defaultPrevented && !element.contains(event.target) && !element.classList.contains(css_class)) {
+        if (!event.defaultPrevented && !element.contains(event.currentTarget as Node) && !element.classList.contains(css_class)) {
             deactivate();
         }
     };
@@ -140,7 +140,7 @@ class DropDownButton extends TEDCustomElement {
 
             dropdown_stylesheet.insertRule(`.button-box[data-selected="${node.value}"] #dropdown div[data-value="${node.value}"] {background-color: pink;}`);
 
-            if (this.shadowRoot!.host.dataset.selected == undefined) {
+            if ((this.shadowRoot!.host as HTMLElement).dataset.selected == undefined) {
                 this.selectedIndex = 0;
             }
         });
@@ -155,7 +155,7 @@ class DropDownButton extends TEDCustomElement {
         this.select.addEventListener("change", () => {
             setText(this.shadowRoot!.getElementById("button")!, select.options[select.selectedIndex].text);
             this.shadowRoot!.getElementById("button-box")!.dataset.selected = select.options[select.selectedIndex].value;
-            this.shadowRoot!.host.dataset.selected = select.options[select.selectedIndex].value;
+            (this.shadowRoot!.host as HTMLElement).dataset.selected = select.options[select.selectedIndex].value;
         });
         this.addEventListener("keydown", (key_event) => {
             switch (key_event.key) {
