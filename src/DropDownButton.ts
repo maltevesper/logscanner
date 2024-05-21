@@ -6,6 +6,9 @@
  * <link rel="stylesheet" href="DropDownButtonSymbolFonts.css">
  */
 
+//import * as dropdownstyles from "./DropDownButton.module.css" assert { type: "css" };
+import dropdownstyles from "./DropDownButton.module.css" assert { type: "css" };
+
 function load_template(template_string: string): HTMLTemplateElement {
     const fragment = new DOMParser().parseFromString(template_string, "text/html");
 
@@ -65,6 +68,7 @@ function addClassOnDeactivation(element: HTMLElement, css_class: string) {
     const deactivate = () => {
         element.classList.add(css_class);
         document.removeEventListener("click", outside_click_listener);
+        document.removeEventListener("keydown", keyboard_listener);
     };
 
     document.addEventListener("click", outside_click_listener);
@@ -75,9 +79,9 @@ class DropDownButton extends TEDCustomElement {
     //static formAssociated = true;
 
     //#internals: ElementInternals;
+    //     <link rel="stylesheet" href="DropDownButton.css">
     static override template: HTMLTemplateElement = load_template(
         `<template>
-    <link rel="stylesheet" href="DropDownButton.css">
     <link rel="stylesheet" href="DropDownButtonSymbolFonts.css">
     <div class="button-box" id="button-box">
         <div class="button">
@@ -116,6 +120,10 @@ class DropDownButton extends TEDCustomElement {
 
         const dropdown_stylesheet = new CSSStyleSheet();
         this.shadowRoot!.adoptedStyleSheets.push(dropdown_stylesheet);
+        this.shadowRoot!.adoptedStyleSheets.push(dropdownstyles);
+        //this.shadowRoot!.adoptedStyleSheets.push(dropdownstyles.default);
+        //console.log(dropdownstyles);
+        //console.log(dropdownstyles.hide);
         /*
           Unfortunately <select><slot></slot></select> does not work,
           since in that case <option> is not a direct child of <select>

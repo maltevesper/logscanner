@@ -29,6 +29,7 @@ type SelectOption = {
     label: string;
     value: string;
     class: string;
+    skip?: boolean;
 }
 
 function* iterateEnum(enum_instance: {}) {
@@ -268,7 +269,7 @@ class Log {
         }
 
         const css_rule = `${css_selectors.join(",\n")} { display: none; }`;
-        console.log(css_rule);
+        //console.log(css_rule);
         this.#stylesheet.replaceSync(css_rule);
     }
 
@@ -309,6 +310,9 @@ class Log {
             const option = document.createElement("option");
             option.innerText = option_spec.value;
             option.classList.add(...option_spec.class.split(" "));
+            if (option_spec.skip) {
+                option.dataset.tedSkip = "true";
+            }
             select.appendChild(option);
         }
 
@@ -342,9 +346,9 @@ class Log {
             const button = this.makeButton(
                 [
                     { "label": "show &#xf44b", "value": `logfilter-show-${level}${logger}`, "class": "logfilter-select-show" },
-                    { "label": "show (weak)", "value": `logfilter-show_weak-${level}${logger}`, "class": "logfilter-select-show_weak" },
+                    { "label": "show (weak)", "value": `logfilter-show_weak-${level}${logger}`, "class": "logfilter-select-show_weak", "skip": true },
                     { "label": "hide (weak)", "value": `logfilter-hide_weak-${level}${logger}`, "class": "logfilter-select-hide_weak" },
-                    { "label": "hide", "value": `logfilter-hide-${level}${logger}`, "class": "logfilter-select-hide" },
+                    { "label": "hide", "value": `logfilter-hide-${level}${logger}`, "class": "logfilter-select-hide", "skip": true },
                 ]
             );
 
@@ -432,7 +436,7 @@ if (logNode == null) {
 } else {
     const controlNode = document.getElementById("controls");
     if (controlNode == null) {
-        console.log("Error: failed to locate log node.");
+        console.log("Error: failed to locate log controls node.");
     } else {
         const y = new Log(logNode,
             controlNode,

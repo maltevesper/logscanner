@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "module": "es6", // commonjs prevents tree shaking
+        "module": "esnext", // commonjs prevents tree shaking
         "target": "ES2022",
         //"outDir": "./dist/",
         "allowUnreachableCode": false,
@@ -13,9 +13,9 @@
         "noImplicitReturns": true,
         "noImplicitThis": true,
         "strictPropertyInitialization": true,
+        "moduleResolution": "bundler",
     },
     "exclude": [
-        "node_modules"
+        "../node_modules"
     ],
-    "moduleResolution": "nodenext",
 }
