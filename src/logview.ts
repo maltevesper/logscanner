@@ -308,7 +308,8 @@ class Log {
 
         for (const option_spec of options) {
             const option = document.createElement("option");
-            option.innerText = option_spec.value;
+            option.setAttribute("value", option_spec.value);
+            option.innerText = option_spec.label;
             option.classList.add(...option_spec.class.split(" "));
             if (option_spec.skip) {
                 option.dataset.tedSkip = "true";
@@ -339,18 +340,20 @@ class Log {
         // button.addEventListener("click", event => { addHiddenClass("loglevel-critical"); })
         // return button
         const button_bar = document.createElement("div");
+        button_bar.classList.add("buttonbar");
 
         //for (let node=this.#logger_tree)
         for (let level of iterateEnum(LogLevel)) {
             level = level.toLowerCase();
             const button = this.makeButton(
                 [
-                    { "label": "show &#xf44b", "value": `logfilter-show-${level}${logger}`, "class": "logfilter-select-show" },
-                    { "label": "show (weak)", "value": `logfilter-show_weak-${level}${logger}`, "class": "logfilter-select-show_weak", "skip": true },
+                    { "label": "show", "value": `logfilter-show-${level}${logger}`, "class": "logfilter-select-show", "skip": true },
+                    { "label": "show (weak)", "value": `logfilter-show_weak-${level}${logger}`, "class": "logfilter-select-show_weak" },
                     { "label": "hide (weak)", "value": `logfilter-hide_weak-${level}${logger}`, "class": "logfilter-select-hide_weak" },
                     { "label": "hide", "value": `logfilter-hide-${level}${logger}`, "class": "logfilter-select-hide", "skip": true },
                 ]
             );
+            button.setAttribute("label", `${level}`);
 
             button_bar.appendChild(button);
         }
@@ -361,6 +364,7 @@ class Log {
     createControlTreeRecursive(html_parent: HTMLElement, node: TreeNode) {
         const container = document.createElement("div");
         container.innerText = node.name;
+        container.classList.add("logfilter-controls-level");
 
         const logger_name = loggerNameFromNode(node);
 

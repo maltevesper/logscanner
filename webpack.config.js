@@ -6,7 +6,6 @@ module.exports = {
     devtool: false, // TODO: what is the correct setting here, to either do no transform or fast builds?
     entry: {
         index: "./src/logview.html",
-        //test: "./src/test.html",
     },
     plugins: [
         new HtmlBundlerPlugin({

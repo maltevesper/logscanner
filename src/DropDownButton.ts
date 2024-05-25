@@ -76,17 +76,19 @@ function addClassOnDeactivation(element: HTMLElement, css_class: string) {
 }
 
 class DropDownButton extends TEDCustomElement {
+    static observedAttributes = ["label"];
     //static formAssociated = true;
 
     //#internals: ElementInternals;
-    //     <link rel="stylesheet" href="DropDownButton.css">
+
+    // <link rel="stylesheet" href="DropDownButtonSymbolFonts.css"> // would need to be added via css module, otherwise not inlined by webpack,
+    // due to cheat of adding this to the root document since fonts are not loaded inside components we simply dont add it at all for now.
     static override template: HTMLTemplateElement = load_template(
         `<template>
-    <link rel="stylesheet" href="DropDownButtonSymbolFonts.css">
     <div class="button-box" id="button-box">
         <div class="button">
             <span id="button">Front Button</span>
-            <span id="dropdown-expander" class="icon-down-arrow" style="font-family: 'CaskaydiaMono NF'"></span>
+            <span id="dropdown-expander" class="icon-down-arrow"></span>
         </div>
         <div id="dropdown" class="hide"></div>
         <select class="hide"></select>
@@ -142,11 +144,12 @@ class DropDownButton extends TEDCustomElement {
             const optionItem = document.createElement("div");
             optionItem.innerText = node.innerText;
             optionItem.dataset.value = node.value;
+            optionItem.classList.add(...[...node.classList.values()]);
             optionItem.addEventListener("click", () => { select.value = node.value; select.dispatchEvent(new Event("change", { bubbles: true, composed: true })); });
 
             dropdown.appendChild(optionItem);
 
-            dropdown_stylesheet.insertRule(`.button-box[data-selected="${node.value}"] #dropdown div[data-value="${node.value}"] {background-color: pink;}`);
+            dropdown_stylesheet.insertRule(`.button-box[data-selected="${node.value}"] #dropdown div[data-value="${node.value}"] {box-shadow: inset 0em 0em 0em 10em rgba(255, 255, 255, 0.3);}`);
 
             if ((this.shadowRoot!.host as HTMLElement).dataset.selected == undefined) {
                 this.selectedIndex = 0;
@@ -161,7 +164,10 @@ class DropDownButton extends TEDCustomElement {
         });
 
         this.select.addEventListener("change", () => {
-            setText(this.shadowRoot!.getElementById("button")!, select.options[select.selectedIndex].text);
+            if (!this.shadowRoot!.host.hasAttribute("label")) {
+                setText(this.shadowRoot!.getElementById("button")!, select.options[select.selectedIndex].text);
+            }
+
             this.shadowRoot!.getElementById("button-box")!.dataset.selected = select.options[select.selectedIndex].value;
             (this.shadowRoot!.host as HTMLElement).dataset.selected = select.options[select.selectedIndex].value;
         });
@@ -193,9 +199,15 @@ class DropDownButton extends TEDCustomElement {
     //     console.log("Custom element moved to new page.");
     // }
 
-    // attributeChangedCallback(name: string, oldValue: any, newValue: any) {
-    //     console.log(`Attribute ${name} has changed.`);
-    // }
+    attributeChangedCallback(name: string, oldValue: any, newValue: any) {
+        console.log(`Attribute ${name} has changed from ${oldValue} to ${newValue}.`);
+        switch (name) {
+            case "label":
+                setText(this.shadowRoot!.getElementById("button")!, newValue);
+                this.select.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+                break;
+        }
+    }
 
     clicked() {
         let option_to_select = this.select.selectedOptions[0]!;

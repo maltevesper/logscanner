@@ -10,7 +10,7 @@ table {
 
 #controls {
     background-color: blue;
-    width: 200px;
+    width: 600px;
     height: 100vh;
     position: fixed;
     top: 0;
@@ -19,16 +19,6 @@ table {
 }
 
 .hide {
-    display: none;
-}
-
-.multibutton {
-    width: 100%;
-    background-color: yellow;
-    display: block;
-}
-
-.multibutton select {
     display: none;
 }
 
@@ -208,3 +198,16 @@ table {
 => Measure Performance with firefox/edge performance tools once this is working.
 See https://blogs.windows.com/msedgedev/2023/01/17/the-truth-about-css-selector-performance/
 */
+
+.logfilter-controls-level {
+    padding-left: 15px;
+}
+
+.buttonbar {
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.buttonbar > * {
+    margin: 0 5px;
+}
