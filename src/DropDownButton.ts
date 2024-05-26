@@ -99,6 +99,9 @@ class DropDownButton extends TEDCustomElement {
 
     select: HTMLSelectElement;
     dropdown: HTMLElement;
+    buttonbox: HTMLElement;
+
+    css_classes_for_option: string[] = [];
 
     constructor() {
         super();
@@ -119,6 +122,14 @@ class DropDownButton extends TEDCustomElement {
         }
 
         this.dropdown = dropdown;
+
+        const buttonbox = this.shadowRoot!.getElementById("button-box");
+
+        if (buttonbox === null) {
+            throw Error("Failed to locate buttonbox area by id `button-box`");
+        }
+
+        this.buttonbox = buttonbox;
 
         const dropdown_stylesheet = new CSSStyleSheet();
         this.shadowRoot!.adoptedStyleSheets.push(dropdown_stylesheet);
@@ -164,21 +175,30 @@ class DropDownButton extends TEDCustomElement {
         });
 
         this.select.addEventListener("change", () => {
-            if (!this.shadowRoot!.host.hasAttribute("label")) {
-                setText(this.shadowRoot!.getElementById("button")!, select.options[select.selectedIndex].text);
+            this.buttonbox.classList.remove(...this.css_classes_for_option);
+
+            if (!select.options.length) {
+                return;
             }
 
-            this.shadowRoot!.getElementById("button-box")!.dataset.selected = select.options[select.selectedIndex].value;
-            (this.shadowRoot!.host as HTMLElement).dataset.selected = select.options[select.selectedIndex].value;
+            const current_option = select.options[select.selectedIndex];
+
+            this.css_classes_for_option = [...current_option.classList];
+            this.buttonbox.classList.add(...current_option.classList);
+
+            if (!this.shadowRoot!.host.hasAttribute("label")) {
+                setText(this.shadowRoot!.getElementById("button")!, current_option.text);
+            }
+
+            this.shadowRoot!.getElementById("button-box")!.dataset.selected = current_option.value;
+            (this.shadowRoot!.host as HTMLElement).dataset.selected = current_option.value;
         });
         this.addEventListener("keydown", (key_event) => {
             switch (key_event.key) {
                 case "ArrowDown":
-                    console.log("down");
                     this.selectedIndex = (this.selectedIndex + 1) % this.select.options.length;
                     break;
                 case "ArrowUp":
-                    console.log("up");
                     this.selectedIndex = (this.selectedIndex + this.select.options.length - 1) % this.select.options.length;
                     break;
             }
@@ -200,11 +220,16 @@ class DropDownButton extends TEDCustomElement {
     // }
 
     attributeChangedCallback(name: string, oldValue: any, newValue: any) {
-        console.log(`Attribute ${name} has changed from ${oldValue} to ${newValue}.`);
         switch (name) {
             case "label":
-                setText(this.shadowRoot!.getElementById("button")!, newValue);
-                this.select.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+                if (newValue !== null) {
+                    setText(this.shadowRoot!.getElementById("button")!, newValue);
+                }
+                //TODO: if the new value is null we should apply the value of the current selected option,
+                // careful with attemtping to use a change event to generate this update, since we get a
+                // attributeChangedCallback on initial load, in which case some elements might not be there
+                // yet, thus causing the changed routines to fail (maybe those routines just need some hardenning anyways)
+                //this.select.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
                 break;
         }
     }

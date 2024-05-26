@@ -24,9 +24,17 @@ module.exports = {
                 test: /\.css$/,
                 oneOf: [
                     // Import CSS/SCSS source file as a CSSStyleSheet object
+                    // {
+                    //     test: /\.css/,
+                    //     resourceQuery: /plaincss/,
+                    //     use: [
+                    //         "css-loader",
+                    //     ]
+                    // },
                     {
                         //resourceQuery: /sheet/, // <= the query, e.g. style.scss?sheet
                         test: /\.module\.css$/,
+                        //resourceQuery: /^$/,
                         use: [
                             {
                                 loader: "css-loader",

@@ -268,7 +268,8 @@ class Log {
             }
         }
 
-        const css_rule = `${css_selectors.join(",\n")} { display: none; }`;
+        //const css_rule = `${css_selectors.join(",\n")} { display: none; }`;
+        const css_rule = `${css_selectors.join(",\n")} { visibility: collapse; }`;
         //console.log(css_rule);
         this.#stylesheet.replaceSync(css_rule);
     }

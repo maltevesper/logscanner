@@ -38,10 +38,15 @@
     content: "\f44b";
 }
 
+/* TODO: merge button and button-box */
 .button-box {
     width: fit-content;
     position: relative;
     background-color: yellow;
+}
+
+#dropdown-expander {
+    height: 100%;
 }
 
 .button {
@@ -49,6 +54,7 @@
     border-radius: 1em;
     width: fit-content;
     display: flex;
+    align-items: stretch;
     padding: 0 0.5em;
 }
 
