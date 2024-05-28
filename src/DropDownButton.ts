@@ -86,8 +86,8 @@ class DropDownButton extends TEDCustomElement {
     static override template: HTMLTemplateElement = load_template(
         `<template>
     <div class="button-box" id="button-box">
-        <div class="button">
-            <span id="button">Front Button</span>
+        <div class="button" id="button">
+            <span id="button-label">Front Button</span>
             <span id="dropdown-expander" class="icon-down-arrow"></span>
         </div>
         <div id="dropdown" class="hide"></div>
@@ -99,7 +99,7 @@ class DropDownButton extends TEDCustomElement {
 
     select: HTMLSelectElement;
     dropdown: HTMLElement;
-    buttonbox: HTMLElement;
+    mainbutton: HTMLElement;
 
     css_classes_for_option: string[] = [];
 
@@ -123,13 +123,13 @@ class DropDownButton extends TEDCustomElement {
 
         this.dropdown = dropdown;
 
-        const buttonbox = this.shadowRoot!.getElementById("button-box");
+        const mainbutton = this.shadowRoot!.getElementById("button");
 
-        if (buttonbox === null) {
-            throw Error("Failed to locate buttonbox area by id `button-box`");
+        if (mainbutton === null) {
+            throw Error("Failed to locate buttonbox area by id `button`");
         }
 
-        this.buttonbox = buttonbox;
+        this.mainbutton = mainbutton;
 
         const dropdown_stylesheet = new CSSStyleSheet();
         this.shadowRoot!.adoptedStyleSheets.push(dropdown_stylesheet);
@@ -165,6 +165,10 @@ class DropDownButton extends TEDCustomElement {
             if ((this.shadowRoot!.host as HTMLElement).dataset.selected == undefined) {
                 this.selectedIndex = 0;
             }
+
+            if (node.hasAttribute("selected")) {
+                this.selectedIndex = this.select.length - 1;
+            }
         });
 
         this.shadowRoot!.getElementById("button")!.addEventListener("click", this.clicked.bind(this));
@@ -172,10 +176,11 @@ class DropDownButton extends TEDCustomElement {
             addClassOnDeactivation(dropdown, "hide");
             dropdown.classList.toggle("hide");
             event.preventDefault();
+            event.stopPropagation();
         });
 
         this.select.addEventListener("change", () => {
-            this.buttonbox.classList.remove(...this.css_classes_for_option);
+            this.mainbutton.classList.remove(...this.css_classes_for_option);
 
             if (!select.options.length) {
                 return;
@@ -184,10 +189,10 @@ class DropDownButton extends TEDCustomElement {
             const current_option = select.options[select.selectedIndex];
 
             this.css_classes_for_option = [...current_option.classList];
-            this.buttonbox.classList.add(...current_option.classList);
+            this.mainbutton.classList.add(...current_option.classList);
 
             if (!this.shadowRoot!.host.hasAttribute("label")) {
-                setText(this.shadowRoot!.getElementById("button")!, current_option.text);
+                setText(this.shadowRoot!.getElementById("button-label")!, current_option.text);
             }
 
             this.shadowRoot!.getElementById("button-box")!.dataset.selected = current_option.value;
@@ -223,7 +228,7 @@ class DropDownButton extends TEDCustomElement {
         switch (name) {
             case "label":
                 if (newValue !== null) {
-                    setText(this.shadowRoot!.getElementById("button")!, newValue);
+                    setText(this.shadowRoot!.getElementById("button-label")!, newValue);
                 }
                 //TODO: if the new value is null we should apply the value of the current selected option,
                 // careful with attemtping to use a change event to generate this update, since we get a
@@ -277,6 +282,10 @@ class DropDownButton extends TEDCustomElement {
     set selectedIndex(index) {
         this.select.selectedIndex = index;
         this.select.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+    }
+
+    get length() {
+        return this.select.length;
     }
 }
 

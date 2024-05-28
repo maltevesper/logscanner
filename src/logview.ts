@@ -30,6 +30,7 @@ type SelectOption = {
     value: string;
     class: string;
     skip?: boolean;
+    selected?: boolean;
 }
 
 function* iterateEnum(enum_instance: {}) {
@@ -185,6 +186,8 @@ class Log {
     #table_body: HTMLTableSectionElement;
     #stylesheet: CSSStyleSheet;
     #logger_tree: Tree;
+    #control_container: HTMLElement;
+
 
     constructor(table_container: HTMLElement, control_container: HTMLElement, log_data: LogType) {
         this.#data = log_data;
@@ -204,6 +207,7 @@ class Log {
         this.initializeFilters();
 
         control_container.appendChild(this.createControls());
+        this.#control_container = control_container;
     }
 
     initializeFilters() {
@@ -220,6 +224,30 @@ class Log {
             }
         }
     }
+
+    /* 
+
+        Logfilters: in reverse order of importance as later rules dominate earlier ones
+
+        - hide: hide
+        - weak-hide: hide
+        - weakshow: show unless hide on level above ->
+            show rules (to override weak hide) <= these need to be in the right spot: weakshow overrides hide only if it is more specific
+                (i.e. A-B-weakshow should not cancel A-B-C hide or A-B-C weakhide)
+            hide rules follow
+        - show from most selective to least
+
+        //-----
+        - hide, weak-hide, weakshow: hide rules before show rules, grouped by selectivity, i.e. hide/weak-hide/weakshow A go before hide/weak-hide/weakshow A-B
+          => A-weakshow, A-B-weakhide => A-B hidden
+        - show rules last: they always override everything else
+
+    */
+
+    /*
+    => Measure Performance with firefox/edge performance tools once this is working.
+    See https://blogs.windows.com/msedgedev/2023/01/17/the-truth-about-css-selector-performance/
+    */
 
     buildStylesheet() {
         // TODO compare array<string> join vs string append with +=
@@ -269,7 +297,15 @@ class Log {
         }
 
         //const css_rule = `${css_selectors.join(",\n")} { display: none; }`;
-        const css_rule = `${css_selectors.join(",\n")} { visibility: collapse; }`;
+        //const css_rule = `${css_selectors.join(",\n")} { visibility: collapse; }`;
+
+        //const css_rule = `${css_selectors.join(",\n")} { opacity: .5; }`;
+
+        const selector_string = css_selectors.join(",\n");
+        // const css_rule = `@scope (#logview) { ${selector_string} { visibility: collapse; } }\n
+        // @scope (#controls) { ${selector_string} { opacity: .5; } }`;
+        const css_rule = `${selector_string} { visibility: collapse; }\n #controls${css_selectors.join(",\n #controls")} { opacity: .5; visibility: visible !important; }`;
+
         //console.log(css_rule);
         this.#stylesheet.replaceSync(css_rule);
     }
@@ -299,8 +335,10 @@ class Log {
         const re = /logfilter-(show|hide)(_weak)?-/;
         const level = element.value.replace(re, "");
         this.#table_body.classList.remove(`logfilter-show_weak-${level}`, `logfilter-show-${level}`, `logfilter-hide_weak-${level}`, `logfilter-hide-${level}`);
-
         this.#table_body.classList.add(element.value);
+
+        this.#control_container.classList.remove(`logfilter-show_weak-${level}`, `logfilter-show-${level}`, `logfilter-hide_weak-${level}`, `logfilter-hide-${level}`);
+        this.#control_container.classList.add(element.value);
     }
 
     makeButton(options: Array<SelectOption>): HTMLElement { //HTMLLabelElement {
@@ -314,6 +352,9 @@ class Log {
             option.classList.add(...option_spec.class.split(" "));
             if (option_spec.skip) {
                 option.dataset.tedSkip = "true";
+            }
+            if (option_spec.selected) {
+                option.setAttribute("selected", "");
             }
             select.appendChild(option);
         }
@@ -336,10 +377,6 @@ class Log {
     }
 
     createControlsButtonBar(logger: string) {
-        // let button = document.createElement("div")
-        // button.innerHTML = "click me!"
-        // button.addEventListener("click", event => { addHiddenClass("loglevel-critical"); })
-        // return button
         const button_bar = document.createElement("div");
         button_bar.classList.add("buttonbar");
 
@@ -349,12 +386,13 @@ class Log {
             const button = this.makeButton(
                 [
                     { "label": "show", "value": `logfilter-show-${level}${logger}`, "class": "logfilter-select-show", "skip": true },
-                    { "label": "show (weak)", "value": `logfilter-show_weak-${level}${logger}`, "class": "logfilter-select-show_weak" },
-                    { "label": "hide (weak)", "value": `logfilter-hide_weak-${level}${logger}`, "class": "logfilter-select-hide_weak" },
-                    { "label": "hide", "value": `logfilter-hide-${level}${logger}`, "class": "logfilter-select-hide", "skip": true },
+                    { "label": "show (weak)", "value": `logfilter-show_weak-${level}${logger}`, "class": "logfilter-select-show_weak", "selected": true },
+                    { "label": "hide (weak)", "value": `logfilter-hide_weak-${level}${logger}`, "class": "logfilter-select-hide_weak", "skip": true },
+                    { "label": "hide", "value": `logfilter-hide-${level}${logger}`, "class": "logfilter-select-hide" },
                 ]
             );
             button.setAttribute("label", `${level}`);
+            button.classList.add(`loglevel-${level}`, `log${logger}`); // logger already contains leading dash
 
             button_bar.appendChild(button);
         }
@@ -364,7 +402,10 @@ class Log {
 
     createControlTreeRecursive(html_parent: HTMLElement, node: TreeNode) {
         const container = document.createElement("div");
-        container.innerText = node.name;
+        const title = document.createElement("h1");
+        title.innerHTML = node.name;
+        container.appendChild(title);
+        //container.innerText = node.name;
         container.classList.add("logfilter-controls-level");
 
         const logger_name = loggerNameFromNode(node);

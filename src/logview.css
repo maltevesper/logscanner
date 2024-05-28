@@ -10,12 +10,19 @@ table {
 
 #controls {
     background-color: blue;
-    width: 600px;
+    /* width: 800px; */
     height: 100vh;
     position: fixed;
     top: 0;
     right: 0;
     overflow: auto;
+}
+
+#controls h1 {
+    font-weight: 900;
+    font-family: monospace;
+    font-size: 1.2em;
+    margin: 0.2em 0;
 }
 
 .hide {
@@ -76,39 +83,15 @@ table {
     background-color: rgb(153, 255, 153);
 } */
 
-/* 
-
-    Logfilters: in reverse order of importance as later rules dominate earlier ones
-
-    - hide: hide
-    - weak-hide: hide
-    - weakshow: show unless hide on level above ->
-        show rules (to override weak hide) <= these need to be in the right spot: weakshow overrides hide only if it is more specific
-            (i.e. A-B-weakshow should not cancel A-B-C hide or A-B-C weakhide)
-        hide rules follow
-    - show from most selective to least
-
-    //-----
-    - hide, weak-hide, weakshow: hide rules before show rules, grouped by selectivity, i.e. hide/weak-hide/weakshow A go before hide/weak-hide/weakshow A-B
-      => A-weakshow, A-B-weakhide => A-B hidden
-    - show rules last: they always override everything else
-
-*/
-
-/*
-=> Measure Performance with firefox/edge performance tools once this is working.
-See https://blogs.windows.com/msedgedev/2023/01/17/the-truth-about-css-selector-performance/
-*/
-
 .logfilter-controls-level {
     padding-left: 15px;
 }
 
 .buttonbar {
-    display: flex;
+    display: inline-flex;
     flex-wrap: nowrap;
 }
 
 .buttonbar > * {
-    margin: 0 5px;
+    margin: 0 4px;
 }

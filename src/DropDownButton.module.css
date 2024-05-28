@@ -38,24 +38,32 @@
     content: "\f44b";
 }
 
-/* TODO: merge button and button-box */
 .button-box {
     width: fit-content;
     position: relative;
+}
+
+.button {
+    width: fit-content;
+    position: relative;
     background-color: yellow;
+    display: flex;
+    align-items: stretch;
+    /* padding: 0 0.5em; */
+    border-radius: 1em;
+
+    /* TODO: move this*/
+    font-family: monospace;
+    font-weight: 900;
 }
 
 #dropdown-expander {
     height: 100%;
+    padding-right: 0.5em;
 }
 
-.button {
-    /* border: 1px solid green; */
-    border-radius: 1em;
-    width: fit-content;
-    display: flex;
-    align-items: stretch;
-    padding: 0 0.5em;
+#button-label {
+    padding-left: 0.5em;
 }
 
 .button span {
