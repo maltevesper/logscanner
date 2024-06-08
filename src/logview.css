@@ -8,7 +8,7 @@ table {
     border-collapse: collapse;
 }
 
-#controls {
+#logview_controls {
     background-color: blue;
     /* width: 800px; */
     height: 100vh;
@@ -18,7 +18,7 @@ table {
     overflow: auto;
 }
 
-#controls h1 {
+#logview_controls h1 {
     font-weight: 900;
     font-family: monospace;
     font-size: 1.2em;
@@ -36,14 +36,14 @@ table {
     white-space: nowrap;
 }
 
-.logview td:nth-child(3) {
+.logview td:nth-child(7) {
     width: 90%;
 }
 
 /* END distribute space */
 
 /* Colorpills on the second column (should propably just generate better markup */
-.logview td:nth-child(2) p {
+.logview td:nth-child(6) p {
     border-radius: 0.5em;
     border-spacing: 2px;
     margin: 1px;
@@ -52,17 +52,17 @@ table {
     padding: 0.05em 0.5em;
 }
 
-.logview .loglevel-error td:nth-child(2) p {
+.logview .loglevel-error td:nth-child(6) p {
     color: rgb(240, 240, 240);
     background-color: var(--error-color);
 }
 
-.logview .loglevel-warn td:nth-child(2) p {
+.logview .loglevel-warn td:nth-child(6) p {
     color: rgb(240, 240, 240);
     background-color: var(--warn-color);
 }
 
-.logview .loglevel-critical td:nth-child(2) p {
+.logview .loglevel-critical td:nth-child(6) p {
     color: rgb(240, 240, 240);
     background-color: var(--critical-color);
 }

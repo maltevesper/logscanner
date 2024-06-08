@@ -12,8 +12,14 @@ type LogType = {
 
 type LogRecord = {
     message: string;
-    level: number;
-    logger: string;
+    levelno: number;
+    name: string;
+    lineno: number;
+    filename: string;
+    pathname: string;
+    funcName: string;
+    msecs: number;
+    exc_text?: string;
 }
 
 enum LogLevel {
@@ -304,7 +310,7 @@ class Log {
         const selector_string = css_selectors.join(",\n");
         // const css_rule = `@scope (#logview) { ${selector_string} { visibility: collapse; } }\n
         // @scope (#controls) { ${selector_string} { opacity: .5; } }`;
-        const css_rule = `${selector_string} { visibility: collapse; }\n #controls${css_selectors.join(",\n #controls")} { opacity: .5; visibility: visible !important; }`;
+        const css_rule = `${selector_string} { visibility: collapse; }\n #logview_controls${css_selectors.join(",\n #logview_controls")} { opacity: .5; visibility: visible !important; }`;
 
         //console.log(css_rule);
         this.#stylesheet.replaceSync(css_rule);
@@ -424,7 +430,7 @@ class Log {
         table.classList.add("logview");
 
         const tableHead = document.createElement("thead");
-        tableHead.innerHTML = "<tr><th>logger</th><th>level</th><th>message</th></tr>";
+        tableHead.innerHTML = "<tr><th>timestamp</th><th>func</th><th>file</th><th>line</th><th>logger</th><th>level</th><th>message</th></tr>";
         table.appendChild(tableHead);
 
         const tableBody = document.createElement("tbody");
@@ -441,21 +447,25 @@ class Log {
     }
 
     insertRow(record: LogRecord) {
-        const level_category = LogLevel[toLevelCategory(record.level)];
+        const level_category = LogLevel[toLevelCategory(record.levelno)];
 
         const row = document.createElement("tr");
 
         row.classList.add(
             `loglevel-${level_category.toLowerCase()}`,
-            this.#loggername_to_class(record.logger)
+            this.#loggername_to_class(record.name)
         );
-        row.insertCell().innerText = record.logger + "-" + this.#loggername_to_class(record.logger);
+        row.insertCell().innerText = (record.msecs / 1000).toString();
+        row.insertCell().innerText = record.funcName;
+        row.insertCell().innerText = record.pathname;
+        row.insertCell().innerText = record.lineno.toString();
+        row.insertCell().innerText = record.name + "-" + this.#loggername_to_class(record.name);
         row.insertCell().innerHTML = `<p>${level_category}</p>`;
         row.insertCell().innerText = record.message;
 
         this.#table_body.appendChild(row);
 
-        return this.#logger_tree.insertPath(splitLogger(record.logger));
+        return this.#logger_tree.insertPath(splitLogger(record.name));
     }
 }
 
@@ -476,32 +486,43 @@ function setText2(node: HTMLElement, text: string) { // TODO: remove (is a dupli
     text_nodes[0].textContent = text;
 }
 
-const logNode = document.getElementById("logview");
-if (logNode == null) {
-    console.log("Error: failed to locate log node.");
-} else {
-    const controlNode = document.getElementById("controls");
+
+function logview(log_data: LogType, logid: string = "logview", controlid: string = "logview_controls"): boolean {
+    const logNode = document.getElementById(logid);
+
+    if (logNode == null) {
+        console.log("Error: failed to locate log node.");
+        return false;
+    }
+    const controlNode = document.getElementById(controlid);
     if (controlNode == null) {
         console.log("Error: failed to locate log controls node.");
-    } else {
-        const y = new Log(logNode,
-            controlNode,
-            {
-                records: [
-                    { message: "Hello", level: 0, logger: "A" },
-                    { message: "Godbye", level: 9, logger: "A.B" },
-                    { message: "Godbye", level: 10, logger: "A.X" },
-                    { message: "Well then", level: 55, logger: "A.B.C" },
-                    { message: "Hello", level: 22, logger: "A" },
-                    { message: "Godbye", level: 29, logger: "A.B" },
-                    { message: "Godbye", level: 20, logger: "A.X" },
-                    { message: "Well then", level: 25, logger: "A.B.C" },
-                    { message: "Hello", level: 30, logger: "A" },
-                    { message: "Godbye", level: 39, logger: "A.B" },
-                    { message: "Godbye", level: 30, logger: "A.X" },
-                    { message: "Well then", level: 35, logger: "A.B.C" },
-                ]
-            }
-        );
+        return false;
     }
+
+    new Log(logNode,
+        controlNode,
+        log_data
+    );
+
+    return true;
 }
+
+window.logview = logview;
+// const log_data = {
+//     records: [
+//         { message: "Hello", level: 0, logger: "A" },
+//         { message: "Godbye", level: 9, logger: "A.B" },
+//         { message: "Godbye", level: 10, logger: "A.X" },
+//         { message: "Well then", level: 55, logger: "A.B.C" },
+//         { message: "Hello", level: 22, logger: "A" },
+//         { message: "Godbye", level: 29, logger: "A.B" },
+//         { message: "Godbye", level: 20, logger: "A.X" },
+//         { message: "Well then", level: 25, logger: "A.B.C" },
+//         { message: "Hello", level: 30, logger: "A" },
+//         { message: "Godbye", level: 39, logger: "A.B" },
+//         { message: "Godbye", level: 30, logger: "A.X" },
+//         { message: "Well then", level: 35, logger: "A.B.C" },
+//     ]
+// };
+// logview(log_data);

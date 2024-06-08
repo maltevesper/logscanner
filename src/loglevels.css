@@ -1,0 +1,98 @@
+.logview {
+    --notset-color: rgb(0, 0, 0);
+    --debug-color: rgb(100, 100, 100);
+    --info-color: rgb(0, 190, 255);
+    --warn-color: rgb(253, 177, 78);
+    --warn-color-text: rgb(250, 209, 26);
+    --error-color: rgb(255, 0, 100);
+    --critical-color: rgb(255, 0, 0);
+
+    background-color: rgb(185, 185, 185);
+
+    font-family: monospace;
+    /*background-color: rgb(255, 240, 0);*/
+}
+
+.loglevel-notset {
+    color: var(--notset-color);
+}
+
+.loglevel-info {
+    color: var(--info-color);
+}
+
+.loglevel-debug {
+    color: var(--debug-color);
+}
+
+.loglevel-warn {
+    color: var(--warn-color-text);
+}
+
+.loglevel-error {
+    color: var(--error-color);
+}
+
+.loglevel-critical {
+    color: var(--critical-color);
+}
+
+.logfilter-select-show {
+    background-color: rgb(0, 255, 0);
+}
+
+.logfilter-select-show::before {
+    content: "\f0208";
+}
+
+.logfilter-select-show_weak {
+    background-color: rgb(34, 150, 34);
+}
+
+.logfilter-select-show_weak:before {
+    content: "\f086c";
+}
+
+.logfilter-select-hide_weak {
+    background-color: rgb(124, 0, 0);
+}
+
+.logfilter-select-hide_weak:before {
+    content: "\f15e4";
+}
+
+.logfilter-select-hide {
+    background-color: rgb(255, 0, 0);
+}
+
+.logfilter-select-hide:before {
+    content: "\f0209";
+}
+
+.logfilter-select-hide:before,
+.logfilter-select-hide_weak:before,
+.logfilter-select-show::before,
+.logfilter-select-show_weak:before {
+    font-family: "CaskaydiaMono NF";
+    font-style: normal;
+    font-weight: normal;
+    /* speak: never; */
+
+    display: inline-block;
+    text-decoration: inherit;
+    width: 1em;
+    margin-right: 0.2em;
+    text-align: center;
+    /* opacity: .8; */
+
+    /* For safety - reset parent styles, that can break glyph codes*/
+    font-variant: normal;
+    text-transform: none;
+
+    /* fix buttons height, for twitter bootstrap */
+    line-height: 1em;
+
+    /* Animation center compensation - margins should be symmetric */
+    /* remove if not needed */
+    margin-left: 0.2em;
+}
