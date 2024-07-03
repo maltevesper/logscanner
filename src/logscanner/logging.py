@@ -39,7 +39,7 @@ class LogviewHandler(logging.Handler):
             open(self.filename, "w") as logfile,
             open(self._tempfile.name) as tempfile,
             resources.files(__package__)
-            .joinpath("template/logview.html")
+            .joinpath("template/logscanner.html")
             .open() as template,
         ):
             for line in template:
@@ -75,6 +75,13 @@ def main():
     logging.warning("Test it.")
     logging.debug("Test it.")
     logging.fatal("Test it.")
+    a = logging.getLogger("A")
+    a_b = logging.getLogger("A.B")
+    a_b_c = logging.getLogger("A.B.C")
+
+    a.info("Test it.")
+    a_b.info("Test it.")
+    a_b_c.info("Test it.")
 
     try:
         1 / 0

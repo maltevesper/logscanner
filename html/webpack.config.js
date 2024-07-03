@@ -5,7 +5,7 @@ module.exports = {
     mode: "development", // TODO: how should we switch this between development and production?
     devtool: false, // TODO: what is the correct setting here, to either do no transform or fast builds?
     entry: {
-        logview: "./src/logview.html",
+        logscanner: "./src/logscanner.html",
     },
     plugins: [
         new HtmlBundlerPlugin({

@@ -34,7 +34,7 @@ def pdm_build_update_files(context: Context, files: dict[str, Path]) -> None:
     if context.target in ["wheel", "editable"]:
         generate_html_template()
         project_name = context.config.metadata["name"]
-        template_file = "logview.html"
+        template_file = "logscanner.html"
         template_package_dir = Path(project_name) / "template"
         template_source_dir = Path("./html/dist")
 
@@ -51,7 +51,7 @@ def pdm_build_update_files(context: Context, files: dict[str, Path]) -> None:
                 parents=True,
                 exist_ok=True,
             )
-            template_file_install_path.unlink()
+            template_file_install_path.unlink(missing_ok=True)
             template_file_install_path.symlink_to(
                 (template_source_dir / template_file)
                 .resolve()
