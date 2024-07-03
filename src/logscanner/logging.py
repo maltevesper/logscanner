@@ -69,37 +69,3 @@ class JsonFormatter(logging.Formatter):
         record.message = record.getMessage()
 
         return json.dumps(record.__dict__, default=str)
-
-
-def main():
-    logging.warning("Test it.")
-    logging.debug("Test it.")
-    logging.fatal("Test it.")
-    a = logging.getLogger("A")
-    a_b = logging.getLogger("A.B")
-    a_b_c = logging.getLogger("A.B.C")
-
-    a.info("Test it.")
-    a_b.info("Test it.")
-    a_b_c.info("Test it.")
-
-    try:
-        1 / 0
-    except ZeroDivisionError:
-        logging.exception("message")
-
-
-def demo():
-    handler = LogviewHandler("thelog")
-    logging.root.addHandler(handler)
-    logging.root.setLevel(logging.NOTSET)
-
-    streamhandler = logging.StreamHandler()
-    streamhandler.setLevel(logging.INFO)
-    logging.root.addHandler(streamhandler)
-
-    main()
-
-
-if __name__ == "__main__":
-    demo()
