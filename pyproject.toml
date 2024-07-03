@@ -1,0 +1,109 @@
+[tool.pdm]
+[tool.pdm.build]
+custom-hook = "pdm_build.py"
+source-includes = ["html/"]
+excludes = ["html/node_modules", "html/dist"]
+
+[tool.pdm.dev-dependencies]
+dev = [
+    # "pytest>=7.2.1",
+    # "black>=22.12.0",
+    # "wemake-python-styleguide>=0.17.0",
+    # "mypy>=0.991",
+    # "pytest-randomly>=3.12.0",
+    # "pytest-asyncio>=0.21.1",
+    # "pytest-cov>=4.1.0",
+    # "argcomplete>=3.1.1",
+    # "ptpython>=3.0.23",
+    # "pyroma>=4.2",
+    # "types-PyYAML>=6.0.12.11",
+    # "mkdocs-material>=9.3.2",
+    # "mkdocstrings[python]>=0.23.0",
+    # "mkdocs-gen-files>=0.5.0",
+    # "mkdocs-literate-nav>=0.6.1",
+    # "mkdocs-section-index>=0.3.7",
+    # "devtools>=0.12.2",
+    # "pre-commit>=3.5.0",
+    "ruff>=0.1.3",
+    # "more-itertools>=10.1.0",
+    "pdm>=2.16.1",
+    "pdm-backend>=2.3.1",
+]
+
+# [tool.pdm.build.wheel-data]
+# data = [{ path = "html/dist/logview.html" }]
+
+[tool.ruff]
+select = ["ALL"]
+ignore = [
+    "ANN101", # do not mandate self typeannotations (autoinfers of typecheckers is good enough
+    "TD002",  # do not require TODO author
+    "TD003",  # do not require TODO issue links
+    "FIX002", # For now, we allow TODOs
+    # Formatter struggles with these: https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+    # "COM812", # We would like trailing commas, but the formatter struggles
+    # "ISC001", # We do not like single line string concatenation, but the formatter complains
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101", # allow assert in tests
+    "N802", # allow wrong test function names, to allow def test_ClassName_x()
+]
+
+[tool.ruff.pydocstyle]
+convention = "google"
+
+# [tool.black]
+# line-length = 88
+# target-version = ['py311']
+# include = '(src|tests)/.*\.pyi?$'
+
+# [tool.isort]
+# profile = "black"
+
+# [tool.mypy]
+# packages = ["atomiclines"]
+# disallow_untyped_defs = true
+
+# [tool.pytest.ini_options]
+# minversion = "6.0"
+# # log_cli = true
+# # log_level = "NOTSET"
+# #  -q
+# addopts = "-ra --tb=short  --durations=10 --durations-min=1.0 --cov --cov-report html --junitxml=junit.xml"
+# testpaths = ["tests"]
+# asyncio_mode = "auto"
+# # faulthandler_timeout=5
+# junit_logging = "all"
+# pythonpath = "tests"
+# required_plugins = ["pytest-asyncio"]
+
+[project]
+name = "logview"
+version = "0.9"
+description = "A logger for python logging outputting to easily viewable (and filterable) html files. Good for people not grep savey, and color higlighting and quickly changing filters might even bye useful for commandline wizards."
+authors = [{ name = "Malte Vesper", email = "malte.vesper@gmx.net" }]
+dependencies = []
+requires-python = ">=3.11"
+license = { text = "MIT" }
+readme = "README.md"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Typing :: Typed",
+]
+keywords = ["logging", "viewer"]
+
+[project.urls]
+# Homepage = "https://example.com"
+Documentation = "https://maltevesper.github.io/logview/"
+Repository = "https://github.com/maltevesper/logview"
+Changelog = "https://github.com/maltevesper/logview/blob/main/CHANGELOG.md"
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
