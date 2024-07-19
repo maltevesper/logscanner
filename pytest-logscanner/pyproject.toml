@@ -1,4 +1,5 @@
 [tool.pdm]
+distribution = true
 [tool.pdm.build]
 custom-hook = "pdm_build.py"
 source-includes = ["html/"]
@@ -11,6 +12,7 @@ dev = [
     "pdm-backend>=2.3.1",
     "pytest>=8.2.2",
     "devtools>=0.12.2",
+    "twine>=5.1.1",
 ]
 
 [tool.ruff]
@@ -49,11 +51,11 @@ junit_logging = "all"
 pythonpath = "tests"
 
 [project]
-name = "logscanner"
+name = "pytest-logscanner"
 version = "0.9.1"
-description = "A logger for python logging outputting to easily viewable (and filterable) html files. Good for people not grep savey, and color higlighting and quickly changing filters might even bye useful for commandline wizards."
+description = "Pytest plugin for logscanner (A logger for python logging outputting to easily viewable (and filterable) html files. Good for people not grep savey, and color higlighting and quickly changing filters might even bye useful for commandline wizards.)"
 authors = [{ name = "Malte Vesper", email = "malte.vesper@gmx.net" }]
-dependencies = []
+dependencies = ["logscanner>=0.9"]
 requires-python = ">=3.12"
 license = { text = "MIT" }
 readme = "README.md"
@@ -64,6 +66,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Typing :: Typed",
+    "Framework :: Pytest",
 ]
 keywords = ["logging", "viewer"]
 
@@ -73,8 +76,9 @@ Documentation = "https://maltevesper.github.io/logscanner/"
 Repository = "https://github.com/maltevesper/logscanner"
 Changelog = "https://github.com/maltevesper/logscanner/blob/main/CHANGELOG.md"
 
-[project.optional-dependencies]
-pytest = ["pytest-logscanner>=0.9.1"]
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
+
+[project.entry-points."pytest11"]
+pytest-logscanner = "pytest_logscanner.pytest_logscanner"

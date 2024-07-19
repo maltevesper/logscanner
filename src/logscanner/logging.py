@@ -22,7 +22,7 @@ class LogviewHandler(logging.Handler):
         self.formatter = JsonFormatter()
         self._separator = ""
 
-    def emit(self, record) -> None:
+    def emit(self, record: logging.LogRecord) -> None:
         self._tempfile.write(self._separator + self.formatter.format(record))
         self._separator = ",\n"
 
@@ -37,21 +37,21 @@ class LogviewHandler(logging.Handler):
 
         with (
             open(self.filename, "w") as logfile,
-            open(self._tempfile.name) as tempfile,
+            open(self._tempfile.name) as temporary_logfile,
             resources.files(__package__)
             .joinpath("template/logscanner.html")
             .open() as template,
         ):
             for line in template:
                 if r"{{logdata}}" in line:
-                    for line in tempfile:
-                        logfile.write(line)
+                    for logrecord in temporary_logfile:
+                        logfile.write(logrecord)
 
                     continue
 
                 logfile.write(line)
 
-        pathlib.Path(self._tempfile.name).unlink(True)
+        pathlib.Path(self._tempfile.name).unlink(missing_ok=True)
 
         return super().close()
 
