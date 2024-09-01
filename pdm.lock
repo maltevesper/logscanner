@@ -2,10 +2,10 @@
 # It is not intended for manual editing.
 
 [metadata]
-groups = ["default", "dev", "pytest-logscanner", "pytest"]
+groups = ["default", "dev", "pytest"]
 strategy = ["inherit_metadata"]
 lock_version = "4.4.2"
-content_hash = "sha256:d9a0e56bc30b901c1f681540b3a5c064cf758c9d629ad3d52344a8425b6ae821"
+content_hash = "sha256:f4f04d54576a8e534ac96e9ab944e2ffbcc5b9c25d3379e6e8b6f8226a088d3b"
 
 [[package]]
 name = "anyio"

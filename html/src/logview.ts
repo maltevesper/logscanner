@@ -459,7 +459,7 @@ class Log {
         row.insertCell().innerText = record.funcName;
         row.insertCell().innerText = record.pathname;
         row.insertCell().innerText = record.lineno.toString();
-        row.insertCell().innerText = record.name + "-" + this.#loggername_to_class(record.name);
+        row.insertCell().innerText = record.name; // this.#loggername_to_class(record.name);
         row.insertCell().innerHTML = `<p>${level_category}</p>`;
         row.insertCell().innerText = record.message;
 
