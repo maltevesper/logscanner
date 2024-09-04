@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>LogScanner</title>
     <meta name="description" content="">
@@ -20,6 +20,7 @@
 
     <script src="logview.js" async defer></script>
     <script>
+        //<!--
         const log_data = {
     records: [
         {{logdata}}
@@ -27,6 +28,7 @@
 };
 
 logview(log_data);
+        //-->
     </script>
     <script src="DropDownButton.js" async defer></script>
 </body>
