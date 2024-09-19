@@ -461,7 +461,7 @@ class Log {
         row.insertCell().innerText = record.lineno.toString();
         row.insertCell().innerText = record.name; // this.#loggername_to_class(record.name);
         row.insertCell().innerHTML = `<p>${level_category}</p>`;
-        row.insertCell().innerText = record.message;
+        row.insertCell().innerText = record.exc_text ? record.message + record.exc_text : record.message;
 
         this.#table_body.appendChild(row);
 
@@ -509,20 +509,3 @@ function logview(log_data: LogType, logid: string = "logview", controlid: string
 }
 
 window.logview = logview;
-// const log_data = {
-//     records: [
-//         { message: "Hello", level: 0, logger: "A" },
-//         { message: "Godbye", level: 9, logger: "A.B" },
-//         { message: "Godbye", level: 10, logger: "A.X" },
-//         { message: "Well then", level: 55, logger: "A.B.C" },
-//         { message: "Hello", level: 22, logger: "A" },
-//         { message: "Godbye", level: 29, logger: "A.B" },
-//         { message: "Godbye", level: 20, logger: "A.X" },
-//         { message: "Well then", level: 25, logger: "A.B.C" },
-//         { message: "Hello", level: 30, logger: "A" },
-//         { message: "Godbye", level: 39, logger: "A.B" },
-//         { message: "Godbye", level: 30, logger: "A.X" },
-//         { message: "Well then", level: 35, logger: "A.B.C" },
-//     ]
-// };
-// logview(log_data);

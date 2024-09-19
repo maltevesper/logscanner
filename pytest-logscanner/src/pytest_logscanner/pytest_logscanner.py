@@ -1,6 +1,6 @@
 import logging
-from collections.abc import Generator
 from pathlib import Path
+from typing import Any
 
 import pytest
 from logscanner import LogviewHandler
@@ -26,37 +26,6 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     )
 
 
-@pytest.fixture(autouse=True)  # , scope="function")
-def _setup_logging(
-    request: pytest.FixtureRequest,
-) -> Generator[None, None, None]:
-    logfile = (
-        log_file_path(
-            request.config.getoption("--logscanner-basepath")
-            / request.path.relative_to(Path(".").absolute(), walk_up=True),
-            request.function.__name__,
-        )
-        .with_suffix("")
-        .absolute()
-    )
-
-    logfile.parent.mkdir(exist_ok=True, parents=True)
-
-    # will generate the logfile your_logfile.html in the current directory,
-    # once the logger is shutdown.
-    handler = LogviewHandler(
-        str(logfile),
-    )
-    logging.root.addHandler(handler)
-    # allow everything from the root logger
-    logging.root.setLevel(logging.NOTSET)
-
-    yield
-
-    logging.root.removeHandler(handler)
-    handler.close()
-
-
 def pytest_report_header(config: pytest.Config) -> str | None:
     return f"logscanner will place logs under {config.getoption("--logscanner-basepath").absolute()}"
 
@@ -73,3 +42,88 @@ def pytest_collection_modifyitems(
                 / item.path.relative_to(Path(".").absolute(), walk_up=True),
                 item.name,
             ).unlink(missing_ok=True)
+
+
+# TODO: subclass this plugin? (cleaner containment of module globals in class)
+# def pytest_configure(config):
+#     config.pluginmanager.register(MyPlugin())
+
+
+# class MyPlugin:
+
+#     def pytest_configure(self, config):
+#         self.config = config
+
+#     def pytest_runtest_logstart(self, nodeid, location):
+#         ...  # access self.config
+
+#     def pytest_runtest_logfinish(self, nodeid, location):
+#         ...  # access self.config
+
+
+logger = logging.getLogger("Testexecutor")
+
+_logHandles = dict()
+_config: pytest.Config
+
+
+@pytest.hookimpl
+def pytest_configure(config: pytest.Config):
+    global _config
+    _config = config
+
+
+@pytest.hookimpl(tryfirst=True)  # (wrapper=True)
+def pytest_runtest_logstart(nodeid: str, location: tuple[str, int | None, str]):
+    file, line, testname = location
+    logfile = (
+        log_file_path(
+            _config.getoption("--logscanner-basepath")
+            / Path(_config.rootpath, file).relative_to(
+                Path(".").absolute(), walk_up=True
+            ),
+            testname,
+        )
+        .with_suffix("")
+        .absolute()
+    )
+
+    logfile.parent.mkdir(exist_ok=True, parents=True)
+
+    # will generate the logfile your_logfile.html in the current directory,
+    # once the logger is shutdown.
+    handler = LogviewHandler(
+        str(logfile),
+    )
+    logging.root.addHandler(handler)
+    # allow everything from the root logger
+    logging.root.setLevel(logging.NOTSET)
+
+    _logHandles[nodeid] = handler
+    # yield
+
+
+def pytest_runtest_logfinish(nodeid: str, location: tuple[str, int | None, str]):
+    handler = _logHandles[nodeid]
+    logging.root.removeHandler(handler)
+    handler.close()
+    del _logHandles[nodeid]
+
+
+def pytest_exception_interact(
+    node: pytest.Item | pytest.Collector,
+    call: pytest.CallInfo[Any],
+    report: pytest.CollectReport | pytest.TestReport,
+):
+    logging.exception("Exception during test execution", exc_info=call.excinfo._excinfo)
+
+
+def pytest_runtest_logreport(report: pytest.TestReport) -> None:
+    logger.info(f"Teststage {report.when}")
+
+
+# hooks of interest
+# pytest_runtest_makereport
+# pytest_warning_recorded
+# pytest_assertion_pass
+# pytest_assertrepr_compare

@@ -41,9 +41,10 @@ minversion = "6.0"
 #  -q
 # --cov --cov-report html 
 #  --junitxml=junit.xml
+pytester_example_dir = "tests/plugin/"
+
 addopts = "-ra --tb=short  --durations=10 --durations-min=1.0"
 testpaths = ["tests"]
-
 # faulthandler_timeout=5
 junit_logging = "all"
 pythonpath = "tests"

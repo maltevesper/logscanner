@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>LogScanner</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>.logview {
+    --notset-color: rgb(0, 0, 0);
+    --debug-color: rgb(100, 100, 100);
+    --info-color: rgb(0, 190, 255);
+    --warn-color: rgb(253, 177, 78);
+    --warn-color-text: rgb(250, 209, 26);
+    --error-color: rgb(255, 0, 100);
+    --critical-color: rgb(255, 0, 0);
+
+    background-color: rgb(185, 185, 185);
+
+    font-family: monospace;
+    /*background-color: rgb(255, 240, 0);*/
+}
+
+.loglevel-notset {
+    color: var(--notset-color);
+}
+
+.loglevel-info {
+    color: var(--info-color);
+}
+
+.loglevel-debug {
+    color: var(--debug-color);
+}
+
+.loglevel-warn {
+    color: var(--warn-color-text);
+}
+
+.loglevel-error {
+    color: var(--error-color);
+}
+
+.loglevel-critical {
+    color: var(--critical-color);
+}
+
+.logfilter-select-show {
+    background-color: rgb(0, 255, 0);
+}
+
+.logfilter-select-show::before {
+    content: "\f0208";
+}
+
+.logfilter-select-show_weak {
+    background-color: rgb(34, 150, 34);
+}
+
+.logfilter-select-show_weak:before {
+    content: "\f086c";
+}
+
+.logfilter-select-hide_weak {
+    background-color: rgb(124, 0, 0);
+}
+
+.logfilter-select-hide_weak:before {
+    content: "\f15e4";
+}
+
+.logfilter-select-hide {
+    background-color: rgb(255, 0, 0);
+}
+
+.logfilter-select-hide:before {
+    content: "\f0209";
+}
+
+.logfilter-select-hide:before,
+.logfilter-select-hide_weak:before,
+.logfilter-select-show::before,
+.logfilter-select-show_weak:before {
+    font-family: "CaskaydiaMono NF";
+    font-style: normal;
+    font-weight: normal;
+    /* speak: never; */
+
+    display: inline-block;
+    text-decoration: inherit;
+    width: 1em;
+    margin-right: 0.2em;
+    text-align: center;
+    /* opacity: .8; */
+
+    /* For safety - reset parent styles, that can break glyph codes*/
+    font-variant: normal;
+    text-transform: none;
+
+    /* fix buttons height, for twitter bootstrap */
+    line-height: 1em;
+
+    /* Animation center compensation - margins should be symmetric */
+    /* remove if not needed */
+    margin-left: 0.2em;
+}
+</style>
+    <style>body {
+    margin: 0;
+    background-color: black;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#logview_controls {
+    background-color: blue;
+    /* width: 800px; */
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    right: 0;
+    overflow: auto;
+}
+
+#logview_controls h1 {
+    font-weight: 900;
+    font-family: monospace;
+    font-size: 1.2em;
+    margin: 0.2em 0;
+}
+
+.hide {
+    display: none;
+}
+
+/* distribute space */
+.logview td {
+    width: auto;
+    /*    text-wrap: nowrap;*/
+    white-space: nowrap;
+}
+
+.logview td:nth-child(7) {
+    width: 90%;
+}
+
+/* END distribute space */
+
+/* Colorpills on the second column (should propably just generate better markup */
+.logview td:nth-child(6) p {
+    border-radius: 0.5em;
+    border-spacing: 2px;
+    margin: 1px;
+    text-align: center;
+    font-weight: 900;
+    padding: 0.05em 0.5em;
+}
+
+.logview .loglevel-error td:nth-child(6) p {
+    color: rgb(240, 240, 240);
+    background-color: var(--error-color);
+}
+
+.logview .loglevel-warn td:nth-child(6) p {
+    color: rgb(240, 240, 240);
+    background-color: var(--warn-color);
+}
+
+.logview .loglevel-critical td:nth-child(6) p {
+    color: rgb(240, 240, 240);
+    background-color: var(--critical-color);
+}
+
+/* .logfilter-show {
+    background-color: green;
+}
+
+.logfilter-hide {
+    background-color: red;
+}
+
+.logfilter-hide_weak {
+    background-color: lightcoral;
+}
+
+.logfilter-show_weak {
+    background-color: rgb(153, 255, 153);
+} */
+
+.logfilter-controls-level {
+    padding-left: 15px;
+}
+
+.buttonbar {
+    display: inline-flex;
+    flex-wrap: nowrap;
+}
+
+.buttonbar > * {
+    margin: 0 4px;
+}
+</style>
+    <style>/* @font-face {
+    font-family: 'CaskaydiaMonoNF';
+    src: url('data:application/octet-stream;base64,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') format(' truetype');
+    
+    src: url('CaskaydiaMonoNF-Regular.woff2');
+
+    src: url('data:application/octet-stream;base64,d09GMgABAAAAAA3oABEAAAAAGogAAA2NAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGhYbIBw8BmAA
+ SAiBdAmfAxEMCoUchDALDAABNgIkAwwEIAWDdAcgDIUGG+wYM6PCxgEEobmF7P9QwI0h0NDXM4TO zvkSEUelWLGxan3VBBF99WsvrHGKmHB18aISCJ+RG8ca3sk1DNvBH/+rLwkh0EV9PW7sn0ZIMmtA njVJ0yVeAnQWSrS6ZUyg8UwDD/3pjc/vVc3ATZFrX8aFwZsSkutNiVTYlADuBYCUHIruYm2/2a75 uCi5u3SpQ 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 VNco8BFM74l/WQzE+J6hv3p0CfG5v //sGTQctuJl79CvHnzCYVhBSXeGMK9Vi7Jqt6WMiuymmJ+M
+            M7ZLe8GmzN0YLEH4kUNdERTtHF4GdhNVDQA=') format('woff2')
+
+} */
+
+@font-face {
+    font-family: "CaskaydiaMono NF";
+    src: url(data:font/woff2;charset=utf-8;base64,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)
+            format("woff2"),
+        url(data:font/woff;charset=utf-8;base64,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)
+            format("woff");
+    /* url('CaskaydiaMonoNF-Regular.ttf') format('truetype'); */
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+[class^="icon-"]:before,
+[class*=" icon-"]:before {
+    font-family: "CaskaydiaMono NF";
+    font-style: normal;
+    font-weight: normal;
+    /* speak: never; */
+
+    display: inline-block;
+    text-decoration: inherit;
+    width: 1em;
+    margin-right: 0.2em;
+    text-align: center;
+    /* opacity: .8; */
+
+    /* For safety - reset parent styles, that can break glyph codes*/
+    font-variant: normal;
+    text-transform: none;
+
+    /* fix buttons height, for twitter bootstrap */
+    line-height: 1em;
+
+    /* Animation center compensation - margins should be symmetric */
+    /* remove if not needed */
+    margin-left: 0.2em;
+
+    /* you can be more comfortable with increased icons size */
+    /* font-size: 120%; */
+
+    /* Font smoothing. That was taken from TWBS */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* Uncomment for 3D effect */
+    /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
+}
+
+/*U+f0208,U+f086c,U+f15e4,U+f0209*/
+.icon-eye-off:before {
+    content: "\f0209";
+}
+
+.icon-eye:before {
+    content: "\f0208";
+}
+
+.icon-eye-plus:before {
+    content: "\f086c";
+}
+
+.icon-eye-x:before {
+    content: "\f15e4";
+}
+</style>
+    <style>@font-face {
+    font-family: "CaskaydiaMono NF";
+    src: local("CaskaydiaMono NF Regular"), local("CaskaydiaMonoNF-Regular"),
+        url(data:font/woff2;charset=utf-8;base64,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)
+            format("woff2");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+</style>
+</head>
+
+<body>
+    <div id="logview"></div>
+    <div id="logview_controls"></div>
+    <p class="icon-down-arrow"></p>
+
+    <script>/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/*!************************!*\
+  !*** ./src/logview.ts ***!
+  \************************/
+
+// TODO: we should specify a log json format...
+// type JSONValue =
+//     | string
+//     | number
+//     | boolean
+//     | { [x: string]: JSONValue }
+//     | Array<JSONValue>
+var LogLevel;
+(function (LogLevel) {
+    LogLevel[LogLevel["NOTSET"] = 0] = "NOTSET";
+    LogLevel[LogLevel["DEBUG"] = 10] = "DEBUG";
+    LogLevel[LogLevel["INFO"] = 20] = "INFO";
+    LogLevel[LogLevel["WARN"] = 30] = "WARN";
+    LogLevel[LogLevel["ERROR"] = 40] = "ERROR";
+    LogLevel[LogLevel["CRITICAL"] = 50] = "CRITICAL";
+})(LogLevel || (LogLevel = {}));
+function* iterateEnum(enum_instance) {
+    for (const key of Object.keys(enum_instance)) {
+        if (isNaN(Number(key))) {
+            yield key;
+        }
+    }
+}
+function toLevelCategory(numeric_level) {
+    let level = LogLevel.NOTSET;
+    // TODO: use iterateEnum? might be worse, since this quits walking the enum early
+    Object.keys(LogLevel).every((key) => {
+        const key_index = Number(key);
+        // Once we reach the text keys we are done
+        if (isNaN(key_index)) {
+            return false;
+        }
+        if (key_index <= numeric_level) {
+            level = key_index;
+            return true;
+        }
+        return false;
+    });
+    return level;
+}
+class TreeNode {
+    name;
+    children;
+    parent;
+    constructor(name) {
+        this.name = name;
+        this.children = [];
+        this.parent = undefined;
+    }
+    addChild(node) {
+        this.children.push(node);
+    }
+}
+class Tree {
+    #root;
+    constructor() {
+        this.#root = new TreeNode("__root__");
+    }
+    #insertNode(name, parent) {
+        let created = false;
+        let node = parent.children.find((node) => { return node.name == name; });
+        if (node === undefined) {
+            node = new TreeNode(name);
+            node.parent = parent;
+            parent.children.push(node);
+            created = true;
+        }
+        return [created, node];
+    }
+    insertPath(path) {
+        let parent = this.#root;
+        let inserted = false;
+        for (const path_segment of path) {
+            let insertion;
+            [insertion, parent] = this.#insertNode(path_segment, parent);
+            inserted ||= insertion;
+        }
+        return inserted;
+    }
+    *walkDepthFirst() {
+        const stack = [{ "node": this.#root, "visited": false }];
+        let annotated_node;
+        while (annotated_node = stack.at(-1)) {
+            if (annotated_node.visited) {
+                yield annotated_node.node;
+                stack.pop();
+            }
+            else {
+                annotated_node.visited = true;
+                annotated_node.node.children.map((child) => { stack.push({ "node": child, "visited": false }); });
+            }
+        }
+    }
+    *walkLeafes() {
+        const stack = [this.#root];
+        let node;
+        while (node = stack.pop()) {
+            if (node.children.length) {
+                stack.push(...node.children);
+            }
+            else {
+                yield node;
+            }
+        }
+    }
+    getRoot() {
+        return this.#root;
+    }
+}
+function splitLogger(logger) {
+    return logger.split(".");
+}
+/**
+ * CSS rule writing algorithm:
+ * 1.) Build logger tree / get all loggers (just use a hashmap, when a logger is actually inserted insert the parents)
+ * 2.) for each logger write the following:
+ *
+ *     for logger in loggers:
+ *         css-selectors += "    .logfilter-hide-{logger}:not({",".join(".logfilter-show-{p}" for p in logger.parents)}) .log-{logger}"
+ *         css-selectors += ".logfilter-hideweak-{logger}:not({",".join(".logfilter-show-{p}" for p in logger.parents)}) .log-{logger}"
+ *         for parent in logger.parents:
+ *             css-selectors += ".logfilter-hide-{parent}.logfilter-showweak-{logger}:not({",".join(".logfilter-show-{p}" for p in logger.parents if p != parent)}) .log-{logger}"
+ */
+function loggerNameFromNode(logger_node) {
+    const logger_segments = [];
+    let node = logger_node;
+    while (node.parent !== undefined) {
+        logger_segments.unshift(node.name);
+        // TODO: sanatize node names: "-"" => "--" to avoid hacks where constructed logger names interfer with our class names
+        node = node.parent;
+    }
+    const logger = logger_segments.join("-");
+    return logger;
+}
+/**
+ * Generate controls
+ *
+ * 1) generate logger tree
+ * 2) traverse the tree (depth first) and generate hide buttons which are level based
+ */
+class Log {
+    #data;
+    #table;
+    #table_body;
+    #stylesheet;
+    #logger_tree;
+    #control_container;
+    constructor(table_container, control_container, log_data) {
+        this.#data = log_data;
+        [this.#table, this.#table_body] = this.createTable();
+        table_container.appendChild(this.#table);
+        this.#stylesheet = new CSSStyleSheet();
+        document.adoptedStyleSheets.push(this.#stylesheet);
+        this.#logger_tree = new Tree();
+        for (const record of this.#data.records) {
+            this.insertRow(record);
+        }
+        this.buildStylesheet();
+        this.initializeFilters();
+        control_container.appendChild(this.createControls());
+        this.#control_container = control_container;
+    }
+    initializeFilters() {
+        // TODO: function to turn logger_node into logger name
+        for (const logger_node of this.#logger_tree.walkDepthFirst()) {
+            if (logger_node.parent === undefined) {
+                break;
+            }
+            const logger = loggerNameFromNode(logger_node);
+            for (const level of iterateEnum(LogLevel)) {
+                this.#table_body.classList.add(`logfilter-show_weak-${level.toLowerCase()}-${logger}`);
+            }
+        }
+    }
+    /*
+
+        Logfilters: in reverse order of importance as later rules dominate earlier ones
+
+        - hide: hide
+        - weak-hide: hide
+        - weakshow: show unless hide on level above ->
+            show rules (to override weak hide) <= these need to be in the right spot: weakshow overrides hide only if it is more specific
+                (i.e. A-B-weakshow should not cancel A-B-C hide or A-B-C weakhide)
+            hide rules follow
+        - show from most selective to least
+
+        //-----
+        - hide, weak-hide, weakshow: hide rules before show rules, grouped by selectivity, i.e. hide/weak-hide/weakshow A go before hide/weak-hide/weakshow A-B
+          => A-weakshow, A-B-weakhide => A-B hidden
+        - show rules last: they always override everything else
+
+    */
+    /*
+    => Measure Performance with firefox/edge performance tools once this is working.
+    See https://blogs.windows.com/msedgedev/2023/01/17/the-truth-about-css-selector-performance/
+    */
+    buildStylesheet() {
+        // TODO compare array<string> join vs string append with +=
+        const css_selectors = [];
+        for (const logger_node of this.#logger_tree.walkDepthFirst()) {
+            if (logger_node.parent === undefined) {
+                break;
+            }
+            const logger_segments = [];
+            let node = logger_node;
+            while (node.parent !== undefined) {
+                logger_segments.unshift(node.name);
+                // TODO: sanatize node names: "-"" => "--" to avoid hacks where constructed logger names interfer with our class names
+                node = node.parent;
+            }
+            const logger = logger_segments.join("-");
+            const logger_parents = [];
+            for (let i = 1; i < logger_segments.length; ++i) {
+                logger_parents.push(logger_segments.slice(0, i).join("-"));
+            }
+            for (let level of iterateEnum(LogLevel)) {
+                level = level.toLowerCase();
+                const log_scope = `.log-${logger}.loglevel-${level}`;
+                const parent_show_selectors = logger_parents.map((parent) => { return `.logfilter-show-${level}-${parent}`; });
+                const show_selectors_with_root = [`.logfilter-show-${level}`, ...parent_show_selectors];
+                const negated_term = `:not(${show_selectors_with_root.join(", ")})`;
+                css_selectors.push(`.logfilter-hide-${level}-${logger}${negated_term} ${log_scope}`);
+                css_selectors.push(`.logfilter-hide_weak-${level}-${logger}${negated_term} ${log_scope}`);
+                const negated_term2 = (parent_show_selectors.length) ? `:not(${parent_show_selectors.join(", ")})` : "";
+                css_selectors.push(`.logfilter-hide-${level}.logfilter-show_weak-${level}-${logger}${negated_term2} ${log_scope}`);
+                for (const parent of logger_parents) {
+                    const cleaned_negated_term = `:not(${show_selectors_with_root.filter((selector) => { return selector != `.logfilter-show-${level}-${parent}`; }).join(", ")})`;
+                    css_selectors.push(`.logfilter-hide-${level}-${parent}.logfilter-show_weak-${level}-${logger}${cleaned_negated_term} ${log_scope}`);
+                }
+            }
+        }
+        //const css_rule = `${css_selectors.join(",\n")} { display: none; }`;
+        //const css_rule = `${css_selectors.join(",\n")} { visibility: collapse; }`;
+        //const css_rule = `${css_selectors.join(",\n")} { opacity: .5; }`;
+        const selector_string = css_selectors.join(",\n");
+        // const css_rule = `@scope (#logview) { ${selector_string} { visibility: collapse; } }\n
+        // @scope (#controls) { ${selector_string} { opacity: .5; } }`;
+        const css_rule = `${selector_string} { visibility: collapse; }\n #logview_controls${css_selectors.join(",\n #logview_controls")} { opacity: .5; visibility: visible !important; }`;
+        //console.log(css_rule);
+        this.#stylesheet.replaceSync(css_rule);
+    }
+    cycleButton(event) {
+        const select = event.target;
+        const previous_option = select.selectedOptions[0];
+        const option_to_select = unwrap(select.options.item((select.options.selectedIndex + 1) % select.options.length));
+        const label = select.labels[0];
+        select.value = option_to_select.value;
+        setText2(label, option_to_select.value);
+        label.classList.remove(previous_option.className);
+        label.classList.add(option_to_select.className);
+        this.#table_body.classList.remove(previous_option.value);
+        this.#table_body.classList.add(option_to_select.value);
+    }
+    changeButton(event) {
+        //console.log(`The event has resulted in option ${event.target.value} being selected`);
+        //this.#table_body.classList.remove(previous_option.value);
+        // TODO: store previous value as data, store level as data?
+        const element = event.currentTarget;
+        const re = /logfilter-(show|hide)(_weak)?-/;
+        const level = element.value.replace(re, "");
+        this.#table_body.classList.remove(`logfilter-show_weak-${level}`, `logfilter-show-${level}`, `logfilter-hide_weak-${level}`, `logfilter-hide-${level}`);
+        this.#table_body.classList.add(element.value);
+        this.#control_container.classList.remove(`logfilter-show_weak-${level}`, `logfilter-show-${level}`, `logfilter-hide_weak-${level}`, `logfilter-hide-${level}`);
+        this.#control_container.classList.add(element.value);
+    }
+    makeButton(options) {
+        //const button = document.createElement("label");
+        const select = document.createElement("ted-dropdown");
+        for (const option_spec of options) {
+            const option = document.createElement("option");
+            option.setAttribute("value", option_spec.value);
+            option.innerText = option_spec.label;
+            option.classList.add(...option_spec.class.split(" "));
+            if (option_spec.skip) {
+                option.dataset.tedSkip = "true";
+            }
+            if (option_spec.selected) {
+                option.setAttribute("selected", "");
+            }
+            select.appendChild(option);
+        }
+        //select.value = options[0].value;
+        // button.innerText = options[0].value;
+        // button.classList.add("multibutton");
+        // button.appendChild(select);
+        select.addEventListener("change", this.changeButton.bind(this));
+        //return button;
+        return select;
+    }
+    createControls() {
+        const button_bar = document.createElement("div");
+        this.createControlTreeRecursive(button_bar, this.#logger_tree.getRoot());
+        return button_bar;
+    }
+    createControlsButtonBar(logger) {
+        const button_bar = document.createElement("div");
+        button_bar.classList.add("buttonbar");
+        //for (let node=this.#logger_tree)
+        for (let level of iterateEnum(LogLevel)) {
+            level = level.toLowerCase();
+            const button = this.makeButton([
+                { "label": "show", "value": `logfilter-show-${level}${logger}`, "class": "logfilter-select-show", "skip": true },
+                { "label": "show (weak)", "value": `logfilter-show_weak-${level}${logger}`, "class": "logfilter-select-show_weak", "selected": true },
+                { "label": "hide (weak)", "value": `logfilter-hide_weak-${level}${logger}`, "class": "logfilter-select-hide_weak", "skip": true },
+                { "label": "hide", "value": `logfilter-hide-${level}${logger}`, "class": "logfilter-select-hide" },
+            ]);
+            button.setAttribute("label", `${level}`);
+            button.classList.add(`loglevel-${level}`, `log${logger}`); // logger already contains leading dash
+            button_bar.appendChild(button);
+        }
+        return button_bar;
+    }
+    createControlTreeRecursive(html_parent, node) {
+        const container = document.createElement("div");
+        const title = document.createElement("h1");
+        title.innerHTML = node.name;
+        container.appendChild(title);
+        //container.innerText = node.name;
+        container.classList.add("logfilter-controls-level");
+        const logger_name = loggerNameFromNode(node);
+        container.appendChild(this.createControlsButtonBar(logger_name != "" ? `-${logger_name}` : ""));
+        for (const child of node.children) {
+            this.createControlTreeRecursive(container, child);
+        }
+        html_parent.appendChild(container);
+    }
+    createTable() {
+        const table = document.createElement("table");
+        table.classList.add("logview");
+        const tableHead = document.createElement("thead");
+        tableHead.innerHTML = "<tr><th>timestamp</th><th>func</th><th>file</th><th>line</th><th>logger</th><th>level</th><th>message</th></tr>";
+        table.appendChild(tableHead);
+        const tableBody = document.createElement("tbody");
+        table.appendChild(tableBody);
+        //TODO: remove:
+        //tableBody.classList.add("logfilter-show_weak-warn-A", "logfilter-hide_weak-warn-A-B", "logfilter-show_weak-warn-A-B-C", "logfilter-show-warn-A-X")
+        return [table, tableBody];
+    }
+    #loggername_to_class(logger_name) {
+        return "log-" + logger_name.replaceAll(".", "-");
+    }
+    insertRow(record) {
+        const level_category = LogLevel[toLevelCategory(record.levelno)];
+        const row = document.createElement("tr");
+        row.classList.add(`loglevel-${level_category.toLowerCase()}`, this.#loggername_to_class(record.name));
+        row.insertCell().innerText = (record.msecs / 1000).toString();
+        row.insertCell().innerText = record.funcName;
+        row.insertCell().innerText = record.pathname;
+        row.insertCell().innerText = record.lineno.toString();
+        row.insertCell().innerText = record.name; // this.#loggername_to_class(record.name);
+        row.insertCell().innerHTML = `<p>${level_category}</p>`;
+        row.insertCell().innerText = record.message;
+        this.#table_body.appendChild(row);
+        return this.#logger_tree.insertPath(splitLogger(record.name));
+    }
+}
+function unwrap(item, message) {
+    if (item === undefined || item === null) {
+        throw new Error(message ?? "Item undefined or null");
+    }
+    return item;
+}
+function setText2(node, text) {
+    const text_nodes = [...node.childNodes].filter((childNode) => {
+        return (childNode.nodeType === Node.TEXT_NODE);
+    });
+    text_nodes.forEach((text_node) => { text_node.textContent = ""; });
+    text_nodes[0].textContent = text;
+}
+function logview(log_data, logid = "logview", controlid = "logview_controls") {
+    const logNode = document.getElementById(logid);
+    if (logNode == null) {
+        console.log("Error: failed to locate log node.");
+        return false;
+    }
+    const controlNode = document.getElementById(controlid);
+    if (controlNode == null) {
+        console.log("Error: failed to locate log controls node.");
+        return false;
+    }
+    new Log(logNode, controlNode, log_data);
+    return true;
+}
+window.logview = logview;
+// const log_data = {
+//     records: [
+//         { message: "Hello", level: 0, logger: "A" },
+//         { message: "Godbye", level: 9, logger: "A.B" },
+//         { message: "Godbye", level: 10, logger: "A.X" },
+//         { message: "Well then", level: 55, logger: "A.B.C" },
+//         { message: "Hello", level: 22, logger: "A" },
+//         { message: "Godbye", level: 29, logger: "A.B" },
+//         { message: "Godbye", level: 20, logger: "A.X" },
+//         { message: "Well then", level: 25, logger: "A.B.C" },
+//         { message: "Hello", level: 30, logger: "A" },
+//         { message: "Godbye", level: 39, logger: "A.B" },
+//         { message: "Godbye", level: 30, logger: "A.X" },
+//         { message: "Well then", level: 35, logger: "A.B.C" },
+//     ]
+// };
+// logview(log_data);
+
+/******/ })()
+;</script>
+    <script>
+        //<!--
+        const log_data = {
+    records: [
+{"name": "root", "msg": "Setup", "args": [], "levelname": "INFO", "levelno": 20, "pathname": "/home/malte/projects/logview/tests/plugin/exception/conftest.py", "filename": "conftest.py", "module": "conftest", "exc_info": null, "exc_text": null, "stack_info": null, "lineno": 7, "funcName": "setup_teardown_log", "created": 1726749290.3896122, "msecs": 389.0, "relativeCreated": 333.21404457092285, "thread": 128849726713984, "threadName": "MainThread", "processName": "MainProcess", "process": 52995, "taskName": null, "message": "Setup"},
+{"name": "root", "msg": "OH NO!WORLD", "args": [], "levelname": "WARNING", "levelno": 30, "pathname": "/home/malte/projects/logview/tests/plugin/exception/test_exception.py", "filename": "test_exception.py", "module": "test_exception", "exc_info": null, "exc_text": null, "stack_info": null, "lineno": 5, "funcName": "test_exception", "created": 1726749290.3918386, "msecs": 391.0, "relativeCreated": 335.44039726257324, "thread": 128849726713984, "threadName": "MainThread", "processName": "MainProcess", "process": 52995, "taskName": null, "message": "OH NO!WORLD"},
+{"name": "root", "msg": "Exception during test execution", "args": [], "levelname": "ERROR", "levelno": 40, "pathname": "/home/malte/projects/logview/pytest-logscanner/src/pytest_logscanner/pytest_logscanner.py", "filename": "pytest_logscanner.py", "module": "pytest_logscanner", "exc_info": ["<class 'ValueError'>", "Test exception", "<traceback object at 0x75302530fd00>"], "exc_text": "Traceback (most recent call last):\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/runner.py\", line 341, in from_call\n    result: Optional[TResult] = func()\n                                ^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/runner.py\", line 241, in <lambda>\n    lambda: runtest_hook(item=item, **kwds), when=when, reraise=reraise\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_hooks.py\", line 513, in __call__\n    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_manager.py\", line 120, in _hookexec\n    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 139, in _multicall\n    raise exception.with_traceback(exception.__traceback__)\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 122, in _multicall\n    teardown.throw(exception)  # type: ignore[union-attr]\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/threadexception.py\", line 87, in pytest_runtest_call\n    yield from thread_exception_runtest_hook()\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/threadexception.py\", line 63, in thread_exception_runtest_hook\n    yield\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 122, in _multicall\n    teardown.throw(exception)  # type: ignore[union-attr]\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/unraisableexception.py\", line 90, in pytest_runtest_call\n    yield from unraisable_exception_runtest_hook()\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/unraisableexception.py\", line 65, in unraisable_exception_runtest_hook\n    yield\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 122, in _multicall\n    teardown.throw(exception)  # type: ignore[union-attr]\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/logging.py\", line 850, in pytest_runtest_call\n    yield from self._runtest_for(item, \"call\")\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/logging.py\", line 833, in _runtest_for\n    yield\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 122, in _multicall\n    teardown.throw(exception)  # type: ignore[union-attr]\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/capture.py\", line 878, in pytest_runtest_call\n    return (yield)\n            ^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 122, in _multicall\n    teardown.throw(exception)  # type: ignore[union-attr]\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/skipping.py\", line 257, in pytest_runtest_call\n    return (yield)\n            ^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 103, in _multicall\n    res = hook_impl.function(*args)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/runner.py\", line 183, in pytest_runtest_call\n    raise e\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/runner.py\", line 173, in pytest_runtest_call\n    item.runtest()\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/python.py\", line 1632, in runtest\n    self.ihook.pytest_pyfunc_call(pyfuncitem=self)\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_hooks.py\", line 513, in __call__\n    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_manager.py\", line 120, in _hookexec\n    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 139, in _multicall\n    raise exception.with_traceback(exception.__traceback__)\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 103, in _multicall\n    res = hook_impl.function(*args)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/python.py\", line 162, in pytest_pyfunc_call\n    result = testfunction(**testargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/tests/plugin/exception/test_exception.py\", line 6, in test_exception\n    raise ValueError(\"Test exception\")\nValueError: Test exception", "stack_info": null, "lineno": 150, "funcName": "pytest_exception_interact", "created": 1726749296.9786434, "msecs": 978.0, "relativeCreated": 6922.245264053345, "thread": 128849726713984, "threadName": "MainThread", "processName": "MainProcess", "process": 52995, "taskName": null, "message": "Exception during test execution"},
+{"name": "root", "msg": "Teardown", "args": [], "levelname": "INFO", "levelno": 20, "pathname": "/home/malte/projects/logview/tests/plugin/exception/conftest.py", "filename": "conftest.py", "module": "conftest", "exc_info": null, "exc_text": null, "stack_info": null, "lineno": 11, "funcName": "setup_teardown_log", "created": 1726749376.0900912, "msecs": 90.0, "relativeCreated": 86033.69307518005, "thread": 128849726713984, "threadName": "MainThread", "processName": "MainProcess", "process": 52995, "taskName": null, "message": "Teardown"}    ]
+};
+
+logview(log_data);
+        //-->
+    </script>
+    <script>/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./src/DropDownButton.module.css":
+/*!***************************************!*\
+  !*** ./src/DropDownButton.module.css ***!
+  \***************************************/
+/***/ ((module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   button: () => (/* binding */ button),
+/* harmony export */   "button-box": () => (/* binding */ _2),
+/* harmony export */   "button-label": () => (/* binding */ _4),
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
+/* harmony export */   dropdown: () => (/* binding */ dropdown),
+/* harmony export */   "dropdown-expander": () => (/* binding */ _3),
+/* harmony export */   hide: () => (/* binding */ hide),
+/* harmony export */   "icon-down-arrow": () => (/* binding */ _1),
+/* harmony export */   "logfilter-select-hide": () => (/* binding */ _8),
+/* harmony export */   "logfilter-select-hide_weak": () => (/* binding */ _7),
+/* harmony export */   "logfilter-select-show": () => (/* binding */ _5),
+/* harmony export */   "logfilter-select-show_weak": () => (/* binding */ _6)
+/* harmony export */ });
+/* harmony import */ var _node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../node_modules/css-loader/dist/runtime/noSourceMaps.js */ "./node_modules/css-loader/dist/runtime/noSourceMaps.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../node_modules/css-loader/dist/runtime/api.js */ "./node_modules/css-loader/dist/runtime/api.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1__);
+// Imports
+
+
+var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
+// Module
+___CSS_LOADER_EXPORT___.push([module.id, `[class^="icon-"]:before,
+[class*=" icon-"]:before {
+    font-family: "CaskaydiaMono NF";
+    font-style: normal;
+    font-weight: normal;
+    /* speak: never; */
+
+    display: inline-block;
+    text-decoration: inherit;
+    width: 1em;
+    /* margin-right: 0.2em; */
+    text-align: center;
+    /* opacity: .8; */
+
+    /* For safety - reset parent styles, that can break glyph codes*/
+    font-variant: normal;
+    text-transform: none;
+
+    /* fix buttons height, for twitter bootstrap */
+    line-height: 1em;
+
+    /* Animation center compensation - margins should be symmetric */
+    /* remove if not needed */
+    /* margin-left: 0.2em; */
+
+    /* you can be more comfortable with increased icons size */
+    /* font-size: 120%; */
+
+    /* Font smoothing. That was taken from TWBS */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* Uncomment for 3D effect */
+    /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
+}
+
+.icon-down-arrow:before {
+    content: "\\f44b";
+}
+
+.button-box {
+    width: fit-content;
+    position: relative;
+}
+
+.button {
+    width: fit-content;
+    position: relative;
+    background-color: yellow;
+    display: flex;
+    align-items: stretch;
+    /* padding: 0 0.5em; */
+    border-radius: 1em;
+
+    /* TODO: move this*/
+    font-family: monospace;
+    font-weight: 900;
+}
+
+#dropdown-expander {
+    height: 100%;
+    padding-right: 0.5em;
+}
+
+#button-label {
+    padding-left: 0.5em;
+}
+
+.button span {
+    /* background-color: red; */
+}
+
+#dropdown {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background-color: blue;
+    z-index: 999;
+}
+
+#dropdown div:hover {
+    box-shadow: inset 0em 0em 0em 10em rgba(0, 0, 0, 0.3) !important;
+}
+
+/* .button-box:hover #dropdown {
+    display: inline;
+} */
+
+.hide {
+    display: none;
+}
+
+/* break=====================================*/
+.logfilter-select-show {
+    background-color: rgb(0, 255, 0);
+}
+
+.logfilter-select-show::before {
+    content: "\\f0208";
+}
+
+.logfilter-select-show_weak {
+    background-color: rgb(34, 150, 34);
+}
+
+.logfilter-select-show_weak:before {
+    content: "\\f086c";
+}
+
+.logfilter-select-hide_weak {
+    background-color: rgb(124, 0, 0);
+}
+
+.logfilter-select-hide_weak:before {
+    content: "\\f15e4";
+}
+
+.logfilter-select-hide {
+    background-color: rgb(255, 0, 0);
+}
+
+.logfilter-select-hide:before {
+    content: "\\f0209";
+}
+
+.logfilter-select-hide:before,
+.logfilter-select-hide_weak:before,
+.logfilter-select-show::before,
+.logfilter-select-show_weak:before {
+    font-family: "CaskaydiaMono NF";
+    font-style: normal;
+    font-weight: normal;
+    /* speak: never; */
+
+    display: inline-block;
+    text-decoration: inherit;
+    width: 1em;
+    margin-right: 0.2em;
+    text-align: center;
+    /* opacity: .8; */
+
+    /* For safety - reset parent styles, that can break glyph codes*/
+    font-variant: normal;
+    text-transform: none;
+
+    /* fix buttons height, for twitter bootstrap */
+    line-height: 1em;
+
+    /* Animation center compensation - margins should be symmetric */
+    /* remove if not needed */
+    margin-left: 0.2em;
+}
+`, ""]);
+// Exports
+var _1 = `icon-down-arrow`;
+
+var _2 = `button-box`;
+
+var button = `button`;
+var _3 = `dropdown-expander`;
+
+var _4 = `button-label`;
+
+var dropdown = `dropdown`;
+var hide = `hide`;
+var _5 = `logfilter-select-show`;
+
+var _6 = `logfilter-select-show_weak`;
+
+var _7 = `logfilter-select-hide_weak`;
+
+var _8 = `logfilter-select-hide`;
+
+var ___CSS_LOADER_STYLE_SHEET___ = new CSSStyleSheet();
+___CSS_LOADER_STYLE_SHEET___.replaceSync(___CSS_LOADER_EXPORT___.toString());
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_STYLE_SHEET___);
+
+
+/***/ }),
+
+/***/ "./node_modules/css-loader/dist/runtime/api.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/css-loader/dist/runtime/api.js ***!
+  \*****************************************************/
+/***/ ((module) => {
+
+
+
+/*
+  MIT License http://www.opensource.org/licenses/mit-license.php
+  Author Tobias Koppers @sokra
+*/
+module.exports = function (cssWithMappingToString) {
+  var list = [];
+
+  // return the list of modules as css string
+  list.toString = function toString() {
+    return this.map(function (item) {
+      var content = "";
+      var needLayer = typeof item[5] !== "undefined";
+      if (item[4]) {
+        content += "@supports (".concat(item[4], ") {");
+      }
+      if (item[2]) {
+        content += "@media ".concat(item[2], " {");
+      }
+      if (needLayer) {
+        content += "@layer".concat(item[5].length > 0 ? " ".concat(item[5]) : "", " {");
+      }
+      content += cssWithMappingToString(item);
+      if (needLayer) {
+        content += "}";
+      }
+      if (item[2]) {
+        content += "}";
+      }
+      if (item[4]) {
+        content += "}";
+      }
+      return content;
+    }).join("");
+  };
+
+  // import a list of modules into the list
+  list.i = function i(modules, media, dedupe, supports, layer) {
+    if (typeof modules === "string") {
+      modules = [[null, modules, undefined]];
+    }
+    var alreadyImportedModules = {};
+    if (dedupe) {
+      for (var k = 0; k < this.length; k++) {
+        var id = this[k][0];
+        if (id != null) {
+          alreadyImportedModules[id] = true;
+        }
+      }
+    }
+    for (var _k = 0; _k < modules.length; _k++) {
+      var item = [].concat(modules[_k]);
+      if (dedupe && alreadyImportedModules[item[0]]) {
+        continue;
+      }
+      if (typeof layer !== "undefined") {
+        if (typeof item[5] === "undefined") {
+          item[5] = layer;
+        } else {
+          item[1] = "@layer".concat(item[5].length > 0 ? " ".concat(item[5]) : "", " {").concat(item[1], "}");
+          item[5] = layer;
+        }
+      }
+      if (media) {
+        if (!item[2]) {
+          item[2] = media;
+        } else {
+          item[1] = "@media ".concat(item[2], " {").concat(item[1], "}");
+          item[2] = media;
+        }
+      }
+      if (supports) {
+        if (!item[4]) {
+          item[4] = "".concat(supports);
+        } else {
+          item[1] = "@supports (".concat(item[4], ") {").concat(item[1], "}");
+          item[4] = supports;
+        }
+      }
+      list.push(item);
+    }
+  };
+  return list;
+};
+
+/***/ }),
+
+/***/ "./node_modules/css-loader/dist/runtime/noSourceMaps.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/css-loader/dist/runtime/noSourceMaps.js ***!
+  \**************************************************************/
+/***/ ((module) => {
+
+
+
+module.exports = function (i) {
+  return i[1];
+};
+
+/***/ })
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			id: moduleId,
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+/*!*******************************!*\
+  !*** ./src/DropDownButton.ts ***!
+  \*******************************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _DropDownButton_module_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./DropDownButton.module.css */ "./src/DropDownButton.module.css");
+/**
+ * Usage Note: currently Chrome has issues with font definitions inside the shadow DOM.
+ * Therefore we need to load the symbol font in the document root. As of now, this is implemented
+ * as a manual workaround. Please add the following to your head tag:
+ *
+ * <link rel="stylesheet" href="DropDownButtonSymbolFonts.css">
+ */
+//import * as dropdownstyles from "./DropDownButton.module.css" assert { type: "css" };
+
+function load_template(template_string) {
+    const fragment = new DOMParser().parseFromString(template_string, "text/html");
+    const template = fragment.querySelector("template");
+    if (template === null) {
+        throw new Error("Template is missing <template> tag.");
+    }
+    return template;
+}
+function setText(node, text) {
+    const text_nodes = [...node.childNodes].filter((childNode) => {
+        return (childNode.nodeType === Node.TEXT_NODE);
+    });
+    text_nodes.forEach((text_node) => { text_node.textContent = ""; });
+    text_nodes[0].textContent = text;
+}
+class TEDCustomElement extends HTMLElement {
+    static template;
+    constructor() {
+        super();
+        this.attachShadow({ "mode": "open" });
+        this.shadowRoot.appendChild(this.constructor.template.content.cloneNode(true));
+    }
+}
+/* Deactivation
+   - click outside
+   - escape
+*/
+function addClassOnDeactivation(element, css_class) {
+    const outside_click_listener = (event) => {
+        if (!event.defaultPrevented && !element.contains(event.currentTarget) && !element.classList.contains(css_class)) {
+            deactivate();
+        }
+    };
+    const keyboard_listener = (event) => {
+        if (!event.defaultPrevented) {
+            switch (event.key) {
+                case "Escape":
+                    deactivate();
+                    break;
+            }
+        }
+    };
+    const deactivate = () => {
+        element.classList.add(css_class);
+        document.removeEventListener("click", outside_click_listener);
+        document.removeEventListener("keydown", keyboard_listener);
+    };
+    document.addEventListener("click", outside_click_listener);
+    document.addEventListener("keydown", keyboard_listener);
+}
+class DropDownButton extends TEDCustomElement {
+    static observedAttributes = ["label"];
+    //static formAssociated = true;
+    //#internals: ElementInternals;
+    // <link rel="stylesheet" href="DropDownButtonSymbolFonts.css"> // would need to be added via css module, otherwise not inlined by webpack,
+    // due to cheat of adding this to the root document since fonts are not loaded inside components we simply dont add it at all for now.
+    static template = load_template(`<template>
+    <div class="button-box" id="button-box">
+        <div class="button" id="button">
+            <span id="button-label">Front Button</span>
+            <span id="dropdown-expander" class="icon-down-arrow"></span>
+        </div>
+        <div id="dropdown" class="hide"></div>
+        <select class="hide"></select>
+    </div>
+    <slot></slot>
+</template>`);
+    select;
+    dropdown;
+    mainbutton;
+    css_classes_for_option = [];
+    constructor() {
+        super();
+        //this.#internals = this.attachInternals();
+        //TODO: this should be a custom form-associated element (make sure we react to form reset properly)
+        const select = this.shadowRoot.querySelector("select");
+        if (select === null) {
+            throw Error("Could not find select tag in template");
+        }
+        this.select = select;
+        const dropdown = this.shadowRoot.getElementById("dropdown");
+        if (dropdown === null) {
+            throw Error("Failed to locate dropdown area by id `dropdown`");
+        }
+        this.dropdown = dropdown;
+        const mainbutton = this.shadowRoot.getElementById("button");
+        if (mainbutton === null) {
+            throw Error("Failed to locate buttonbox area by id `button`");
+        }
+        this.mainbutton = mainbutton;
+        const dropdown_stylesheet = new CSSStyleSheet();
+        this.shadowRoot.adoptedStyleSheets.push(dropdown_stylesheet);
+        this.shadowRoot.adoptedStyleSheets.push(_DropDownButton_module_css__WEBPACK_IMPORTED_MODULE_0__["default"]);
+        //this.shadowRoot!.adoptedStyleSheets.push(dropdownstyles.default);
+        //console.log(dropdownstyles);
+        //console.log(dropdownstyles.hide);
+        /*
+          Unfortunately <select><slot></slot></select> does not work,
+          since in that case <option> is not a direct child of <select>
+
+          so as a workaround we move the nodes...
+        */
+        this.shadowRoot.addEventListener("slotchange", () => {
+            const node = this.querySelector("option");
+            if (node == null) {
+                return;
+            }
+            select.append(node);
+            const optionItem = document.createElement("div");
+            optionItem.innerText = node.innerText;
+            optionItem.dataset.value = node.value;
+            optionItem.classList.add(...[...node.classList.values()]);
+            optionItem.addEventListener("click", () => { select.value = node.value; select.dispatchEvent(new Event("change", { bubbles: true, composed: true })); });
+            dropdown.appendChild(optionItem);
+            dropdown_stylesheet.insertRule(`.button-box[data-selected="${node.value}"] #dropdown div[data-value="${node.value}"] {box-shadow: inset 0em 0em 0em 10em rgba(255, 255, 255, 0.3);}`);
+            if (this.shadowRoot.host.dataset.selected == undefined) {
+                this.selectedIndex = 0;
+            }
+            if (node.hasAttribute("selected")) {
+                this.selectedIndex = this.select.length - 1;
+            }
+        });
+        this.shadowRoot.getElementById("button").addEventListener("click", this.clicked.bind(this));
+        this.shadowRoot.getElementById("dropdown-expander").addEventListener("click", (event) => {
+            addClassOnDeactivation(dropdown, "hide");
+            dropdown.classList.toggle("hide");
+            event.preventDefault();
+            event.stopPropagation();
+        });
+        this.select.addEventListener("change", () => {
+            this.mainbutton.classList.remove(...this.css_classes_for_option);
+            if (!select.options.length) {
+                return;
+            }
+            const current_option = select.options[select.selectedIndex];
+            this.css_classes_for_option = [...current_option.classList];
+            this.mainbutton.classList.add(...current_option.classList);
+            if (!this.shadowRoot.host.hasAttribute("label")) {
+                setText(this.shadowRoot.getElementById("button-label"), current_option.text);
+            }
+            this.shadowRoot.getElementById("button-box").dataset.selected = current_option.value;
+            this.shadowRoot.host.dataset.selected = current_option.value;
+        });
+        this.addEventListener("keydown", (key_event) => {
+            switch (key_event.key) {
+                case "ArrowDown":
+                    this.selectedIndex = (this.selectedIndex + 1) % this.select.options.length;
+                    break;
+                case "ArrowUp":
+                    this.selectedIndex = (this.selectedIndex + this.select.options.length - 1) % this.select.options.length;
+                    break;
+            }
+        });
+        this.tabIndex = 0;
+    }
+    // connectedCallback() {
+    //     console.log("Custom element added to page.");
+    // }
+    // disconnectedCallback() {
+    //     console.log("Custom element removed from page.");
+    // }
+    // adoptedCallback() {
+    //     console.log("Custom element moved to new page.");
+    // }
+    attributeChangedCallback(name, oldValue, newValue) {
+        switch (name) {
+            case "label":
+                if (newValue !== null) {
+                    setText(this.shadowRoot.getElementById("button-label"), newValue);
+                }
+                //TODO: if the new value is null we should apply the value of the current selected option,
+                // careful with attemtping to use a change event to generate this update, since we get a
+                // attributeChangedCallback on initial load, in which case some elements might not be there
+                // yet, thus causing the changed routines to fail (maybe those routines just need some hardenning anyways)
+                //this.select.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+                break;
+        }
+    }
+    clicked() {
+        let option_to_select = this.select.selectedOptions[0];
+        for (let i = 1; i < this.select.options.length; i++) {
+            option_to_select = this.select.options.item((this.select.options.selectedIndex + i) % this.select.options.length);
+            if (option_to_select.dataset.tedSkip === undefined) {
+                break;
+            }
+        }
+        this.value = option_to_select.value;
+        //this.select.value = option_to_select.value;
+        //this.select.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+        //label.classList.remove(previous_option.className);
+        //label.classList.add(option_to_select.className);
+        //this.#table_body.classList.remove(previous_option.value);
+        //this.#table_body.classList.add(option_to_select.value);
+    }
+    // TODO: expose underlying select API (use a Proxy?, or is there a better method?)
+    get selectedOptions() {
+        return this.select.selectedOptions;
+    }
+    get value() {
+        return this.select.value;
+    }
+    set value(new_value) {
+        this.select.value = new_value;
+        this.select.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+    }
+    get selectedIndex() {
+        return this.select.selectedIndex;
+    }
+    set selectedIndex(index) {
+        this.select.selectedIndex = index;
+        this.select.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+    }
+    get length() {
+        return this.select.length;
+    }
+}
+customElements.define("ted-dropdown", DropDownButton);
+
+/******/ })()
+;</script>
+</body>
+
+</html>
