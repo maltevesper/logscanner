@@ -377,9 +377,17 @@ class Log {
     }
 
     createControls() {
+        const controls = document.createElement("div");
         const button_bar = document.createElement("div");
+        const hide_button = document.createElement("button");
+        hide_button.innerText = "Hide";
+        hide_button.onclick = (mouse_event: MouseEvent) => { (mouse_event.target as HTMLElement).parentElement!.parentElement!.classList.toggle("collapsed"); };
         this.createControlTreeRecursive(button_bar, this.#logger_tree.getRoot());
-        return button_bar;
+
+        controls.appendChild(hide_button);
+        controls.appendChild(button_bar);
+
+        return controls;
     }
 
     createControlsButtonBar(logger: string) {

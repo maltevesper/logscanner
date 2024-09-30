@@ -9,8 +9,8 @@ table {
 }
 
 #logview_controls {
-    background-color: blue;
-    /* width: 800px; */
+    background-color: rgb(145, 145, 145);
+    /*width: auto;*/
     height: 100vh;
     position: fixed;
     top: 0;
@@ -25,8 +25,37 @@ table {
     margin: 0.2em 0;
 }
 
+#logview_controls > div {
+    display: inline-flex;
+}
+
+#logview_controls > div > button {
+    display: grid;
+    grid-template-columns: 1fr;
+    writing-mode: vertical-lr;
+}
+
+#logview_controls > div > div {
+    display: grid;
+    grid-template-columns: 0fr;
+    transition: grid-template-columns 0.4s ease-in-out;
+}
+
+#logview_controls.collapsed > div > div {
+    grid-template-columns: 1fr;
+}
+
+#logview_controls > div > div > div {
+    overflow: hidden;
+}
+
 .hide {
     display: none;
+}
+
+/* Hack: make sure the controls dont cover the table when collapsed. TODO: stuff page into a flexbox with a dummy padding element. (table margin wont work since table> viewport width) */
+table.logview {
+    border-right: 50px solid transparent;
 }
 
 /* distribute space */
@@ -34,6 +63,7 @@ table {
     width: auto;
     /*    text-wrap: nowrap;*/
     white-space: nowrap;
+    vertical-align: top;
 }
 
 .logview td:nth-child(7) {
@@ -53,7 +83,7 @@ table {
 }
 
 .logview .loglevel-error td:nth-child(6) p {
-    color: rgb(240, 240, 240);
+    color: rgb(155, 155, 155);
     background-color: var(--error-color);
 }
 

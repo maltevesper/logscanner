@@ -10,11 +10,11 @@
     <style>.logview {
     --notset-color: rgb(0, 0, 0);
     --debug-color: rgb(100, 100, 100);
-    --info-color: rgb(0, 190, 255);
+    --info-color: rgb(0, 33, 255);
     --warn-color: rgb(253, 177, 78);
     --warn-color-text: rgb(250, 209, 26);
     --error-color: rgb(255, 0, 100);
-    --critical-color: rgb(255, 0, 0);
+    --critical-color: rgb(224, 0, 0);
 
     background-color: rgb(185, 185, 185);
 
@@ -117,8 +117,8 @@ table {
 }
 
 #logview_controls {
-    background-color: blue;
-    /* width: 800px; */
+    background-color: rgb(145, 145, 145);
+    /*width: auto;*/
     height: 100vh;
     position: fixed;
     top: 0;
@@ -133,8 +133,37 @@ table {
     margin: 0.2em 0;
 }
 
+#logview_controls > div {
+    display: inline-flex;
+}
+
+#logview_controls > div > button {
+    display: grid;
+    grid-template-columns: 1fr;
+    writing-mode: vertical-lr;
+}
+
+#logview_controls > div > div {
+    display: grid;
+    grid-template-columns: 0fr;
+    transition: grid-template-columns 0.4s ease-in-out;
+}
+
+#logview_controls.collapsed > div > div {
+    grid-template-columns: 1fr;
+}
+
+#logview_controls > div > div > div {
+    overflow: hidden;
+}
+
 .hide {
     display: none;
+}
+
+/* Hack: make sure the controls dont cover the table when collapsed. TODO: stuff page into a flexbox with a dummy padding element. (table margin wont work since table> viewport width) */
+table.logview {
+    border-right: 50px solid transparent;
 }
 
 /* distribute space */
@@ -142,6 +171,7 @@ table {
     width: auto;
     /*    text-wrap: nowrap;*/
     white-space: nowrap;
+    vertical-align: top;
 }
 
 .logview td:nth-child(7) {
@@ -161,7 +191,7 @@ table {
 }
 
 .logview .loglevel-error td:nth-child(6) p {
-    color: rgb(240, 240, 240);
+    color: rgb(155, 155, 155);
     background-color: var(--error-color);
 }
 
@@ -297,8 +327,6 @@ table {
 <body>
     <div id="logview"></div>
     <div id="logview_controls"></div>
-    <p class="icon-down-arrow"></p>
-
     <script>/******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
 /*!************************!*\
@@ -595,9 +623,15 @@ class Log {
         return select;
     }
     createControls() {
+        const controls = document.createElement("div");
         const button_bar = document.createElement("div");
+        const hide_button = document.createElement("button");
+        hide_button.innerText = "Hide";
+        hide_button.onclick = (mouse_event) => { mouse_event.target.parentElement.parentElement.classList.toggle("collapsed"); };
         this.createControlTreeRecursive(button_bar, this.#logger_tree.getRoot());
-        return button_bar;
+        controls.appendChild(hide_button);
+        controls.appendChild(button_bar);
+        return controls;
     }
     createControlsButtonBar(logger) {
         const button_bar = document.createElement("div");
@@ -656,7 +690,7 @@ class Log {
         row.insertCell().innerText = record.lineno.toString();
         row.insertCell().innerText = record.name; // this.#loggername_to_class(record.name);
         row.insertCell().innerHTML = `<p>${level_category}</p>`;
-        row.insertCell().innerText = record.message;
+        row.insertCell().innerText = record.exc_text ? record.message + record.exc_text : record.message;
         this.#table_body.appendChild(row);
         return this.#logger_tree.insertPath(splitLogger(record.name));
     }
@@ -689,23 +723,6 @@ function logview(log_data, logid = "logview", controlid = "logview_controls") {
     return true;
 }
 window.logview = logview;
-// const log_data = {
-//     records: [
-//         { message: "Hello", level: 0, logger: "A" },
-//         { message: "Godbye", level: 9, logger: "A.B" },
-//         { message: "Godbye", level: 10, logger: "A.X" },
-//         { message: "Well then", level: 55, logger: "A.B.C" },
-//         { message: "Hello", level: 22, logger: "A" },
-//         { message: "Godbye", level: 29, logger: "A.B" },
-//         { message: "Godbye", level: 20, logger: "A.X" },
-//         { message: "Well then", level: 25, logger: "A.B.C" },
-//         { message: "Hello", level: 30, logger: "A" },
-//         { message: "Godbye", level: 39, logger: "A.B" },
-//         { message: "Godbye", level: 30, logger: "A.X" },
-//         { message: "Well then", level: 35, logger: "A.B.C" },
-//     ]
-// };
-// logview(log_data);
 
 /******/ })()
 ;</script>
@@ -713,10 +730,13 @@ window.logview = logview;
         //<!--
         const log_data = {
     records: [
-{"name": "root", "msg": "Setup", "args": [], "levelname": "INFO", "levelno": 20, "pathname": "/home/malte/projects/logview/tests/plugin/exception/conftest.py", "filename": "conftest.py", "module": "conftest", "exc_info": null, "exc_text": null, "stack_info": null, "lineno": 7, "funcName": "setup_teardown_log", "created": 1726749290.3896122, "msecs": 389.0, "relativeCreated": 333.21404457092285, "thread": 128849726713984, "threadName": "MainThread", "processName": "MainProcess", "process": 52995, "taskName": null, "message": "Setup"},
-{"name": "root", "msg": "OH NO!WORLD", "args": [], "levelname": "WARNING", "levelno": 30, "pathname": "/home/malte/projects/logview/tests/plugin/exception/test_exception.py", "filename": "test_exception.py", "module": "test_exception", "exc_info": null, "exc_text": null, "stack_info": null, "lineno": 5, "funcName": "test_exception", "created": 1726749290.3918386, "msecs": 391.0, "relativeCreated": 335.44039726257324, "thread": 128849726713984, "threadName": "MainThread", "processName": "MainProcess", "process": 52995, "taskName": null, "message": "OH NO!WORLD"},
-{"name": "root", "msg": "Exception during test execution", "args": [], "levelname": "ERROR", "levelno": 40, "pathname": "/home/malte/projects/logview/pytest-logscanner/src/pytest_logscanner/pytest_logscanner.py", "filename": "pytest_logscanner.py", "module": "pytest_logscanner", "exc_info": ["<class 'ValueError'>", "Test exception", "<traceback object at 0x75302530fd00>"], "exc_text": "Traceback (most recent call last):\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/runner.py\", line 341, in from_call\n    result: Optional[TResult] = func()\n                                ^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/runner.py\", line 241, in <lambda>\n    lambda: runtest_hook(item=item, **kwds), when=when, reraise=reraise\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_hooks.py\", line 513, in __call__\n    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_manager.py\", line 120, in _hookexec\n    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 139, in _multicall\n    raise exception.with_traceback(exception.__traceback__)\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 122, in _multicall\n    teardown.throw(exception)  # type: ignore[union-attr]\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/threadexception.py\", line 87, in pytest_runtest_call\n    yield from thread_exception_runtest_hook()\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/threadexception.py\", line 63, in thread_exception_runtest_hook\n    yield\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 122, in _multicall\n    teardown.throw(exception)  # type: ignore[union-attr]\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/unraisableexception.py\", line 90, in pytest_runtest_call\n    yield from unraisable_exception_runtest_hook()\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/unraisableexception.py\", line 65, in unraisable_exception_runtest_hook\n    yield\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 122, in _multicall\n    teardown.throw(exception)  # type: ignore[union-attr]\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/logging.py\", line 850, in pytest_runtest_call\n    yield from self._runtest_for(item, \"call\")\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/logging.py\", line 833, in _runtest_for\n    yield\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 122, in _multicall\n    teardown.throw(exception)  # type: ignore[union-attr]\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/capture.py\", line 878, in pytest_runtest_call\n    return (yield)\n            ^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 122, in _multicall\n    teardown.throw(exception)  # type: ignore[union-attr]\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/skipping.py\", line 257, in pytest_runtest_call\n    return (yield)\n            ^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 103, in _multicall\n    res = hook_impl.function(*args)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/runner.py\", line 183, in pytest_runtest_call\n    raise e\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/runner.py\", line 173, in pytest_runtest_call\n    item.runtest()\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/python.py\", line 1632, in runtest\n    self.ihook.pytest_pyfunc_call(pyfuncitem=self)\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_hooks.py\", line 513, in __call__\n    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_manager.py\", line 120, in _hookexec\n    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 139, in _multicall\n    raise exception.with_traceback(exception.__traceback__)\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 103, in _multicall\n    res = hook_impl.function(*args)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/python.py\", line 162, in pytest_pyfunc_call\n    result = testfunction(**testargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/tests/plugin/exception/test_exception.py\", line 6, in test_exception\n    raise ValueError(\"Test exception\")\nValueError: Test exception", "stack_info": null, "lineno": 150, "funcName": "pytest_exception_interact", "created": 1726749296.9786434, "msecs": 978.0, "relativeCreated": 6922.245264053345, "thread": 128849726713984, "threadName": "MainThread", "processName": "MainProcess", "process": 52995, "taskName": null, "message": "Exception during test execution"},
-{"name": "root", "msg": "Teardown", "args": [], "levelname": "INFO", "levelno": 20, "pathname": "/home/malte/projects/logview/tests/plugin/exception/conftest.py", "filename": "conftest.py", "module": "conftest", "exc_info": null, "exc_text": null, "stack_info": null, "lineno": 11, "funcName": "setup_teardown_log", "created": 1726749376.0900912, "msecs": 90.0, "relativeCreated": 86033.69307518005, "thread": 128849726713984, "threadName": "MainThread", "processName": "MainProcess", "process": 52995, "taskName": null, "message": "Teardown"}    ]
+{"name": "root", "msg": "Setup", "args": [], "levelname": "INFO", "levelno": 20, "pathname": "/home/malte/projects/logview/tests/plugin/exception/conftest.py", "filename": "conftest.py", "module": "conftest", "exc_info": null, "exc_text": null, "stack_info": null, "lineno": 7, "funcName": "setup_teardown_log", "created": 1727688444.968156, "msecs": 968.0, "relativeCreated": 96.04477882385254, "thread": 131583317815424, "threadName": "MainThread", "processName": "MainProcess", "process": 35619, "taskName": null, "message": "Setup"},
+{"name": "Testexecutor", "msg": "Teststage setup", "args": [], "levelname": "INFO", "levelno": 20, "pathname": "/home/malte/projects/logview/pytest-logscanner/src/pytest_logscanner/pytest_logscanner.py", "filename": "pytest_logscanner.py", "module": "pytest_logscanner", "exc_info": null, "exc_text": null, "stack_info": null, "lineno": 122, "funcName": "pytest_runtest_logreport", "created": 1727688444.9684477, "msecs": 968.0, "relativeCreated": 96.33636474609375, "thread": 131583317815424, "threadName": "MainThread", "processName": "MainProcess", "process": 35619, "taskName": null, "message": "Teststage setup"},
+{"name": "root", "msg": "OH NO!WORLD", "args": [], "levelname": "WARNING", "levelno": 30, "pathname": "/home/malte/projects/logview/tests/plugin/exception/test_exception.py", "filename": "test_exception.py", "module": "test_exception", "exc_info": null, "exc_text": null, "stack_info": null, "lineno": 5, "funcName": "test_exception", "created": 1727688444.968609, "msecs": 968.0, "relativeCreated": 96.49777412414551, "thread": 131583317815424, "threadName": "MainThread", "processName": "MainProcess", "process": 35619, "taskName": null, "message": "OH NO!WORLD"},
+{"name": "Testexecutor", "msg": "Teststage call", "args": [], "levelname": "INFO", "levelno": 20, "pathname": "/home/malte/projects/logview/pytest-logscanner/src/pytest_logscanner/pytest_logscanner.py", "filename": "pytest_logscanner.py", "module": "pytest_logscanner", "exc_info": null, "exc_text": null, "stack_info": null, "lineno": 122, "funcName": "pytest_runtest_logreport", "created": 1727688444.979754, "msecs": 979.0, "relativeCreated": 107.64265060424805, "thread": 131583317815424, "threadName": "MainThread", "processName": "MainProcess", "process": 35619, "taskName": null, "message": "Teststage call"},
+{"name": "root", "msg": "Exception during test execution", "args": [], "levelname": "ERROR", "levelno": 40, "pathname": "/home/malte/projects/logview/pytest-logscanner/src/pytest_logscanner/pytest_logscanner.py", "filename": "pytest_logscanner.py", "module": "pytest_logscanner", "exc_info": ["<class 'ValueError'>", "Test exception", "<traceback object at 0x77ac9face140>"], "exc_text": "Traceback (most recent call last):\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/runner.py\", line 341, in from_call\n    result: Optional[TResult] = func()\n                                ^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/runner.py\", line 241, in <lambda>\n    lambda: runtest_hook(item=item, **kwds), when=when, reraise=reraise\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_hooks.py\", line 513, in __call__\n    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_manager.py\", line 120, in _hookexec\n    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 139, in _multicall\n    raise exception.with_traceback(exception.__traceback__)\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 122, in _multicall\n    teardown.throw(exception)  # type: ignore[union-attr]\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/threadexception.py\", line 87, in pytest_runtest_call\n    yield from thread_exception_runtest_hook()\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/threadexception.py\", line 63, in thread_exception_runtest_hook\n    yield\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 122, in _multicall\n    teardown.throw(exception)  # type: ignore[union-attr]\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/unraisableexception.py\", line 90, in pytest_runtest_call\n    yield from unraisable_exception_runtest_hook()\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/unraisableexception.py\", line 65, in unraisable_exception_runtest_hook\n    yield\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 122, in _multicall\n    teardown.throw(exception)  # type: ignore[union-attr]\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/logging.py\", line 850, in pytest_runtest_call\n    yield from self._runtest_for(item, \"call\")\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/logging.py\", line 833, in _runtest_for\n    yield\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 122, in _multicall\n    teardown.throw(exception)  # type: ignore[union-attr]\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/capture.py\", line 878, in pytest_runtest_call\n    return (yield)\n            ^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 122, in _multicall\n    teardown.throw(exception)  # type: ignore[union-attr]\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/skipping.py\", line 257, in pytest_runtest_call\n    return (yield)\n            ^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 103, in _multicall\n    res = hook_impl.function(*args)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/runner.py\", line 183, in pytest_runtest_call\n    raise e\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/runner.py\", line 173, in pytest_runtest_call\n    item.runtest()\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/python.py\", line 1632, in runtest\n    self.ihook.pytest_pyfunc_call(pyfuncitem=self)\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_hooks.py\", line 513, in __call__\n    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_manager.py\", line 120, in _hookexec\n    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 139, in _multicall\n    raise exception.with_traceback(exception.__traceback__)\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/pluggy/_callers.py\", line 103, in _multicall\n    res = hook_impl.function(*args)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/.venv/lib/python3.12/site-packages/_pytest/python.py\", line 162, in pytest_pyfunc_call\n    result = testfunction(**testargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/malte/projects/logview/tests/plugin/exception/test_exception.py\", line 6, in test_exception\n    raise ValueError(\"Test exception\")\nValueError: Test exception", "stack_info": null, "lineno": 118, "funcName": "pytest_exception_interact", "created": 1727688444.9799726, "msecs": 979.0, "relativeCreated": 107.86128044128418, "thread": 131583317815424, "threadName": "MainThread", "processName": "MainProcess", "process": 35619, "taskName": null, "message": "Exception during test execution"},
+{"name": "root", "msg": "Teardown", "args": [], "levelname": "INFO", "levelno": 20, "pathname": "/home/malte/projects/logview/tests/plugin/exception/conftest.py", "filename": "conftest.py", "module": "conftest", "exc_info": null, "exc_text": null, "stack_info": null, "lineno": 11, "funcName": "setup_teardown_log", "created": 1727688444.984417, "msecs": 984.0, "relativeCreated": 112.3056411743164, "thread": 131583317815424, "threadName": "MainThread", "processName": "MainProcess", "process": 35619, "taskName": null, "message": "Teardown"},
+{"name": "Testexecutor", "msg": "Teststage teardown", "args": [], "levelname": "INFO", "levelno": 20, "pathname": "/home/malte/projects/logview/pytest-logscanner/src/pytest_logscanner/pytest_logscanner.py", "filename": "pytest_logscanner.py", "module": "pytest_logscanner", "exc_info": null, "exc_text": null, "stack_info": null, "lineno": 122, "funcName": "pytest_runtest_logreport", "created": 1727688444.9849217, "msecs": 984.0, "relativeCreated": 112.81037330627441, "thread": 131583317815424, "threadName": "MainThread", "processName": "MainProcess", "process": 35619, "taskName": null, "message": "Teststage teardown"}    ]
 };
 
 logview(log_data);
