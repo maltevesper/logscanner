@@ -63,7 +63,7 @@ def pytest_collection_modifyitems(
 
 logger = logging.getLogger("Testexecutor")
 
-_logHandles = dict()
+_loghandles = {}
 _config: pytest.Config
 
 
@@ -94,20 +94,21 @@ def pytest_runtest_logstart(nodeid: str, location: tuple[str, int | None, str]):
     # once the logger is shutdown.
     handler = LogviewHandler(
         str(logfile),
+        Path(_config.rootpath),
     )
     logging.root.addHandler(handler)
     # allow everything from the root logger
     logging.root.setLevel(logging.NOTSET)
 
-    _logHandles[nodeid] = handler
+    _loghandles[nodeid] = handler
     # yield
 
 
 def pytest_runtest_logfinish(nodeid: str, location: tuple[str, int | None, str]):
-    handler = _logHandles[nodeid]
+    handler = _loghandles[nodeid]
     logging.root.removeHandler(handler)
     handler.close()
-    del _logHandles[nodeid]
+    del _loghandles[nodeid]
 
 
 def pytest_exception_interact(
