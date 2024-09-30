@@ -51,7 +51,7 @@ pythonpath = "tests"
 
 [project]
 name = "logscanner"
-version = "0.9.2"
+version = "0.9.3"
 description = "A logger for python logging outputting to easily viewable (and filterable) html files. Good for people not grep savey, and color higlighting and quickly changing filters might even bye useful for commandline wizards."
 authors = [{ name = "Malte Vesper", email = "malte.vesper@gmx.net" }]
 dependencies = []
@@ -75,7 +75,7 @@ Repository = "https://github.com/maltevesper/logscanner"
 Changelog = "https://github.com/maltevesper/logscanner/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
-pytest = ["pytest-logscanner>=0.9.1"]
+pytest = ["pytest-logscanner>=0.9.3"]
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"

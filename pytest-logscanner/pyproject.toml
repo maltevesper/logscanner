@@ -52,10 +52,10 @@ pythonpath = "tests"
 
 [project]
 name = "pytest-logscanner"
-version = "0.9.1"
+version = "0.9.3"
 description = "Pytest plugin for logscanner (A logger for python logging outputting to easily viewable (and filterable) html files. Good for people not grep savey, and color higlighting and quickly changing filters might even bye useful for commandline wizards.)"
 authors = [{ name = "Malte Vesper", email = "malte.vesper@gmx.net" }]
-dependencies = ["logscanner>=0.9", "pytest>=8.2.2"]
+dependencies = ["logscanner>=0.9.3", "pytest>=8.2.2"]
 requires-python = ">=3.12"
 license = { text = "MIT" }
 readme = "README.md"
